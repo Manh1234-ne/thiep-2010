@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Món Quà 20/10 Dành Riêng Cho Bạn 💖✨</title>
+  <meta name="description" content="Thiệp chúc mừng ngày Phụ nữ Việt Nam 20/10 với hoa tươi, mưa lời chúc ngọt ngào, mưa ảnh kỷ niệm và lá thư yêu thương.">
+  <meta name="theme-color" content="#be123c">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Dancing+Script:wght@600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="card.css">
+</head>
+<body>
+
+  <!-- Falling Elements Canvas (Petals & Sparkles) -->
+  <canvas id="petal-canvas"></canvas>
+
+  <!-- Rain Layer for Wishes and Photos -->
+  <div id="rain-container" class="rain-container" aria-hidden="true"></div>
+
+  <!-- Ambient Floating Music Control -->
+  <aside class="floating-music-dock">
+    <button type="button" class="music-toggle-disc" id="music-disc-btn" title="Bật / Tắt Nhạc 🎵" aria-label="Toggle Music">
+      <div class="disc-vinyl">
+        <span class="disc-icon">🎵</span>
+      </div>
+      <span class="disc-label" id="disc-track-name">Nhạc 20/10</span>
+    </button>
+  </aside>
+
+  <!-- Main Luxury Experience Container -->
+  <main class="card-hero-scene">
+
+    <!-- Top Greeting Banner -->
+    <header class="recipient-badge-box">
+      <div class="golden-crown-tag">✨ VIETNAMESE WOMEN'S DAY 20/10 ✨</div>
+      <h1 class="hero-recipient-name" id="display-recipient">Gửi Người Phụ Nữ Tuyệt Vời 💖</h1>
+      <p class="hero-tagline" id="display-title">Món quà bất ngờ và trọn vẹn yêu thương dành riêng cho bạn</p>
+    </header>
+
+    <!-- Center Stage: Bouquet and Envelope -->
+    <section class="stage-center">
+
+      <!-- Bouquet Showcase Section -->
+      <article class="bouquet-showcase" id="bouquet-card">
+        <div class="bouquet-halo"></div>
+        <div class="bouquet-img-wrapper" id="bouquet-img-box" title="Chạm để ngắm bó hoa tươi thắm 💐">
+          <img id="display-bouquet-img" src="assets/bouquet_red_roses.jpg" alt="Bó hoa chúc mừng 20/10" class="bouquet-photo">
+          <div class="bouquet-sparkle-ribbon">
+            <span>💐 Bó Hoa Dành Tặng Bạn</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3D Letter & Envelope Interaction -->
+      <article class="envelope-presentation">
+        <div class="envelope-container" id="card-envelope" title="Chạm vào phong bì để mở thư!">
+          <!-- Wax Seal -->
+          <div class="wax-seal-btn" id="card-wax-seal">
+            <span class="seal-heart">💖</span>
+            <span class="seal-text">20/10</span>
+          </div>
+
+          <!-- Envelope Folds -->
+          <div class="env-flap env-flap-top"></div>
+          <div class="env-fold env-fold-left"></div>
+          <div class="env-fold env-fold-right"></div>
+          <div class="env-fold env-fold-bottom"></div>
+
+          <!-- The sliding letter inside -->
+          <div class="letter-scroll" id="letter-sheet">
+            <div class="letter-paper-inner">
+              <div class="letter-top-crest">
+                <span class="crest-rose">🌹</span>
+                <span class="crest-divider"></span>
+              </div>
+
+              <h2 class="letter-to" id="letter-to-heading">Thân gửi Em yêu 💖</h2>
+
+              <div class="letter-text-content" id="letter-full-text">
+                <!-- Message typed dynamically -->
+              </div>
+
+              <div class="letter-footer-signature">
+                <div class="sig-flower">🌷✨</div>
+                <div class="sig-sender" id="letter-from-sender">Happy 20/10 with all my love ❤️</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="open-instruction-box" id="open-helper">
+          <span class="pulsing-hand">👆</span>
+          <span>Chạm vào phong bao để mở lá thư & thưởng thức giai điệu 🎵</span>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- Interactive Experience Control Toolbar -->
+    <nav class="bottom-action-dock" aria-label="Interactive Controls">
+      <button type="button" class="dock-btn btn-rose" id="btn-touch-open">
+        <span>💌</span> Mở Lá Thư
+      </button>
+      <button type="button" class="dock-btn btn-gold" id="btn-burst-wishes">
+        <span>🌸</span> Mưa Lời Chúc
+      </button>
+      <button type="button" class="dock-btn btn-pink" id="btn-burst-photos">
+        <span>📸</span> Mưa Ảnh Kỷ Niệm
+      </button>
+      <button type="button" class="dock-btn btn-glass" id="btn-heart-burst">
+        <span>💖</span> Bắn Tim
+      </button>
+    </nav>
+
+  </main>
+
+  <!-- Photo Lightbox Modal (When user clicks on a falling photo) -->
+  <div class="photo-modal-overlay" id="photo-modal" aria-hidden="true">
+    <div class="photo-modal-card">
+      <button type="button" class="modal-close-btn" id="close-photo-modal" aria-label="Đóng ảnh">&times;</button>
+      <div class="modal-img-frame">
+        <img id="modal-photo-img" src="" alt="Ảnh kỷ niệm 20/10">
+      </div>
+      <p class="modal-photo-caption" id="modal-photo-caption">✨ Nụ cười rạng ngời của người phụ nữ tuyệt vời nhất ✨</p>
+    </div>
+  </div>
+
+  <script src="card.js"></script>
+</body>
+</html>

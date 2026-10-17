@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mã QR 20/10 Màu Hồng Đỏ - Quét Mã Nhận Lời Chúc Phụ Nữ Việt Nam</title>
+  <meta name="description" content="Tạo và tải ngay mã QR màu hồng đỏ cực đẹp cho ngày 20/10. Khi quét mã bằng Zalo hoặc Camera điện thoại sẽ hiện ra lời chúc yêu thương đong đầy và thiệp số tương tác.">
+  <meta name="theme-color" content="#be123c">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Great+Vibes&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Background Falling Rose Petals Canvas -->
+  <canvas id="petal-canvas"></canvas>
+
+  <!-- Top Navigation Bar -->
+  <header class="header-nav">
+    <div class="nav-container">
+      <div class="brand-logo" id="brand-home-btn">
+        <div class="brand-icon">🌸</div>
+        <div class="brand-text">
+          <h1>MÃ QR 20/10 HỒNG ĐỎ</h1>
+          <span>VIETNAMESE WOMEN'S DAY</span>
+        </div>
+      </div>
+
+      <nav class="nav-tabs" aria-label="Main Navigation">
+        <button type="button" class="nav-tab-btn active" data-tab="card" id="tab-card-btn">
+          <span>💌</span> Thiệp Tương Tác
+        </button>
+        <button type="button" class="nav-tab-btn" data-tab="studio" id="tab-studio-btn">
+          <span>🎨</span> Studio Mã QR
+        </button>
+        <button type="button" class="nav-tab-btn" data-tab="gallery" id="tab-gallery-btn">
+          <span>🖼️</span> Bộ Sưu Tập Ảnh
+        </button>
+      </nav>
+
+      <div class="nav-actions">
+        <button type="button" class="music-btn" id="music-toggle-btn" title="Bật nhạc lãng mạn 🎵" aria-label="Toggle Romantic Music">
+          🎵
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Connect Bar: Giúp điện thoại truy cập vào web dễ dàng nhất -->
+  <div class="mobile-connect-bar" id="mobile-connect-bar">
+    <div class="mobile-connect-inner">
+      <div class="mobile-connect-info">
+        <span class="mobile-icon">📱</span>
+        <div>
+          <strong>Mở Web Trên Điện Thoại (4G / Wi-Fi):</strong>
+          <span id="mobile-url-display" class="mobile-url-text">Đang kết nối...</span>
+        </div>
+      </div>
+      <div class="mobile-connect-actions">
+        <button type="button" class="btn-copy-mobile-url" id="btn-copy-mobile-link">📋 Sao Chép Link</button>
+        <button type="button" class="btn-show-qr-mobile" id="btn-show-mobile-qr">📷 Quét Mã Vào Web</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+
+    <!-- ===================================================
+         VIEW 1: DIGITAL CARD EXPERIENCE (Thiệp Tương Tác)
+         =================================================== -->
+    <section class="tab-view active" id="view-card" aria-label="Digital Interactive Greeting Card">
+      <div class="card-experience-container">
+        <div class="experience-hero-text">
+          <span class="badge-tag">Mừng Ngày Phụ Nữ Việt Nam 20/10</span>
+          <h2 class="experience-title">Món Quà Bất Ngờ Dành Riêng Cho Bạn</h2>
+          <p class="experience-subtitle">Chạm vào phong bao thư để mở lời chúc yêu thương đong đầy 💖</p>
+        </div>
+
+        <!-- 3D Interactive Envelope -->
+        <div class="envelope-stage">
+          <div class="envelope-wrapper" id="interactive-envelope" title="Chạm để mở phong bì thư!">
+            <!-- Wax Seal -->
+            <div class="wax-seal" id="envelope-wax-seal">
+              20/10
+            </div>
+
+            <!-- Folds -->
+            <div class="envelope-top-flap"></div>
+            <div class="envelope-left-fold"></div>
+            <div class="envelope-right-fold"></div>
+            <div class="envelope-front-fold"></div>
+
+            <!-- Sliding Letter Inside -->
+            <div class="letter-card" id="letter-card-element">
+              <div class="letter-content">
+                <div class="letter-rose">🌹</div>
+                <h3 class="letter-header" id="letter-recipient">Gửi Người Phụ Nữ Tuyệt Vời 💖</h3>
+                <div class="letter-body" id="letter-message-body">
+🌸 CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10 🌸
+
+Thân gửi ngàn lời chúc yêu thương và tốt đẹp nhất!
+Chúc bạn luôn luôn xinh đẹp, rạng ngời, ngập tràn niềm vui và mỗi ngày đều hạnh phúc, bình yên, trọn vẹn yêu thương! 💖✨🌷
+                </div>
+                <div class="letter-signature">
+                  Happy 20/10 with love ✨
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="card-action-bar">
+          <button type="button" class="btn-lux btn-primary" id="btn-open-card">
+            <span>💌</span> Mở Thiệp Chúc Mừng
+          </button>
+          <button type="button" class="btn-lux btn-secondary" id="btn-more-petals">
+            <span>🌹</span> Mưa Hoa Hồng
+          </button>
+          <button type="button" class="btn-lux btn-secondary" id="btn-copy-wish">
+            <span>📋</span> Sao Chép Lời Chúc
+          </button>
+          <button type="button" class="btn-lux btn-secondary" id="btn-reset-card">
+            <span>🔄</span> Đóng Phong Bì
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         VIEW 2: QR CODE STUDIO (Studio Tùy Biến Mã QR)
+         =================================================== -->
+    <section class="tab-view" id="view-studio" aria-label="QR Code Customizer Studio">
+      <div class="studio-layout">
+        <!-- Left: Customizer Controls -->
+        <div class="studio-panel">
+          <div class="panel-header">
+            <h2><span>🎨</span> Studio Tạo Thiệp & Mã QR 20/10</h2>
+            <p>Tùy chỉnh bó hoa, mưa lời chúc, mưa ảnh của người ấy và nhạc nền để khi quét mã sẽ mở ra web thiệp lung linh!</p>
+          </div>
+
+          <!-- Target Mode Selector -->
+          <div class="qr-mode-selector">
+            <button type="button" class="mode-tab-btn active" data-mode="web" id="mode-web-btn">
+              <span class="mode-icon">🌐</span>
+              <div class="mode-details">
+                <h4>Quét Mở Web Thiệp Online</h4>
+                <p>Hoa tươi, mưa lời chúc, mưa ảnh & nhạc</p>
+              </div>
+            </button>
+            <button type="button" class="mode-tab-btn" data-mode="text" id="mode-text-btn">
+              <span class="mode-icon">📝</span>
+              <div class="mode-details">
+                <h4>Quét Hiện Chữ Thuần Túy</h4>
+                <p>Hiện trực tiếp popup lời chúc không cần mạng</p>
+              </div>
+            </button>
+          </div>
+
+          <!-- SECTION: BOUQUET SELECTOR (For Web Card) -->
+          <div class="form-section web-only-section" id="section-bouquet">
+            <label class="section-label">1. Chọn Ảnh Bó Hoa Cho Web Thiệp</label>
+            <div class="bouquet-grid">
+              <div class="bouquet-choice-card active" data-bouquet="assets/bouquet_red_roses.jpg">
+                <img src="assets/bouquet_red_roses.jpg" alt="Bó hoa hồng đỏ" class="bouquet-thumb-img">
+                <div class="bouquet-info-box">
+                  <div class="bouquet-title">🌹 Hồng Đỏ Nhung Pháp</div>
+                </div>
+              </div>
+              <div class="bouquet-choice-card" data-bouquet="assets/bouquet_pink_tulips.jpg">
+                <img src="assets/bouquet_pink_tulips.jpg" alt="Bó hoa tulip hồng" class="bouquet-thumb-img">
+                <div class="bouquet-info-box">
+                  <div class="bouquet-title">🌷 Tulip & Mẫu Đơn Pastel</div>
+                </div>
+              </div>
+              <div class="bouquet-choice-card" data-bouquet="assets/bouquet_sunflowers.jpg">
+                <img src="assets/bouquet_sunflowers.jpg" alt="Bó hoa hướng dương" class="bouquet-thumb-img">
+                <div class="bouquet-info-box">
+                  <div class="bouquet-title">🌻 Hướng Dương Rạng Rỡ</div>
+                </div>
+              </div>
+            </div>
+            <div class="bouquet-custom-upload">
+              <label class="upload-file-btn" for="input-custom-bouquet">
+                <span>📷</span> Hoặc Tải Lên Ảnh Bó Hoa Riêng Của Bạn
+              </label>
+              <input type="file" id="input-custom-bouquet" accept="image/*" style="display:none">
+              <span id="custom-bouquet-name" style="font-size:0.8rem; color:#be123c; margin-left:8px;"></span>
+            </div>
+          </div>
+
+          <!-- SECTION: MUSIC SELECTION (For Web Card) -->
+          <div class="form-section web-only-section" id="section-music">
+            <label class="section-label">2. Bản Nhạc Nền Cho Web Thiệp (Có Lời Hát)</label>
+            
+            <div style="margin-bottom: 8px;">
+              <span style="font-size: 0.85rem; font-weight: 700; color: #be123c; text-transform: uppercase; letter-spacing: 0.5px;">
+                ❤️ Giai Điệu Thiêng Liêng Về Mẹ & Tình Mẫu Tử
+              </span>
+            </div>
+
+            <div class="music-selector-grid" style="margin-bottom: 14px; grid-template-columns: 1fr;">
+              <div class="music-choice-card active" data-music="an_nut_nho" style="border-color: #be123c; background: #fff1f2;">
+                <div class="music-card-info">
+                  <span class="music-icon" style="font-size: 1.6rem;">🌸</span>
+                  <div>
+                    <h4 style="font-size: 0.98rem; color: #881337;">Ấn Nút Nhớ... Thả Giấc Mơ</h4>
+                    <p style="color: #be123c; font-weight: 600;">Sơn Tùng M-TP • Bản chính thức có lời hát 🎤</p>
+                  </div>
+                </div>
+                <button type="button" class="preview-play-btn" data-preview="an_nut_nho" title="Nghe thử lời bài hát" style="width: 38px; height: 38px; font-size: 1rem;">▶</button>
+              </div>
+            </div>
+
+            <!-- Custom MP3 Upload option -->
+            <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
+              <label class="upload-file-btn" for="input-custom-music" style="font-size: 0.8rem; padding: 6px 14px;">
+                <span>📂</span> Hoặc Tải Lên File Nhạc MP3 Riêng Có Lời
+              </label>
+              <input type="file" id="input-custom-music" accept="audio/*" style="display:none">
+              <span id="custom-music-name" style="font-size:0.8rem; color:#be123c;"></span>
+            </div>
+          </div>
+
+          <!-- SECTION: RAIN OF WISHES -->
+          <div class="form-section web-only-section" id="section-rain-wishes">
+            <label class="section-label">3. Cấu Hình "Mưa Lời Chúc" (Sẽ rơi trên web)</label>
+            <div class="wishes-chips-wrapper" id="wishes-chips-list">
+              <!-- Dynamically populated chips -->
+            </div>
+            <div class="add-wish-row">
+              <input type="text" id="input-new-wish" class="custom-input" placeholder="Gõ câu chúc muốn cho rơi (ví dụ: Mãi yêu em 💕)...">
+              <button type="button" class="btn-add-wish" id="btn-add-wish">+ Thêm</button>
+            </div>
+            <div class="quick-wish-suggestions">
+              <span style="font-size:0.75rem; color:#9ca3af; align-self:center;">Gợi ý:</span>
+              <button type="button" class="sugg-chip" data-wish="Luôn xinh đẹp rạng ngời 🌸">+ Luôn xinh đẹp 🌸</button>
+              <button type="button" class="sugg-chip" data-wish="Hạnh phúc & Bình an 💖">+ Hạnh phúc & Bình an 💖</button>
+              <button type="button" class="sugg-chip" data-wish="Nụ cười tỏa nắng ✨">+ Nụ cười tỏa nắng ✨</button>
+              <button type="button" class="sugg-chip" data-wish="Tự tin tỏa sáng 👑">+ Tự tin tỏa sáng 👑</button>
+              <button type="button" class="sugg-chip" data-wish="Mãi yêu em thật nhiều 💕">+ Mãi yêu em 💕</button>
+            </div>
+          </div>
+
+          <!-- SECTION: RAIN OF PHOTOS -->
+          <div class="form-section web-only-section" id="section-rain-photos">
+            <label class="section-label">4. Cấu Hình "Mưa Ảnh Về Ai Đó" (Ảnh sẽ lơ lửng rơi)</label>
+            <div class="photo-upload-container">
+              <label class="upload-file-btn" for="input-rain-photos">
+                <span>📸</span> Tải Ảnh Của Người Ấy Lên (Chọn 1 hoặc nhiều ảnh)
+              </label>
+              <input type="file" id="input-rain-photos" accept="image/*" multiple style="display:none">
+              <button type="button" class="upload-file-btn" id="btn-use-sample-photo" style="margin-left: 6px; border-style: solid;">
+                <span>✨</span> Dùng Ảnh Mẫu Xinh Đẹp
+              </button>
+            </div>
+            <div class="photo-thumbnails-grid" id="photo-thumbnails-list">
+              <!-- Thumbnails preview -->
+            </div>
+          </div>
+
+          <!-- Section: Recipient & Letter Content -->
+          <div class="form-section">
+            <label class="section-label" for="qr-recipient-name">5. Tên Người Nhận</label>
+            <input type="text" id="qr-recipient-name" class="custom-input" value="Người phụ nữ tuyệt vời 💖" placeholder="Ví dụ: Em yêu, Mẹ kính yêu, Chị Mai...">
+          </div>
+
+          <div class="form-section">
+            <label class="section-label" for="qr-wish-text">6. Nội Dung Lá Thư Lời Chúc</label>
+            <div class="textarea-wrapper">
+              <textarea id="qr-wish-text" class="custom-input" rows="4">🌸 CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10 🌸
+
+Thân gửi ngàn lời chúc yêu thương và tốt đẹp nhất!
+Chúc bạn luôn luôn xinh đẹp, rạng ngời, ngập tràn niềm vui và mỗi ngày đều hạnh phúc, bình yên, trọn vẹn yêu thương! 💖✨🌷</textarea>
+            </div>
+            <div class="char-counter">
+              <span id="density-indicator" class="density-ok">Độ nét tối ưu (quét cực nhanh)</span>
+              <span id="char-count">196 ký tự</span>
+            </div>
+          </div>
+
+          <!-- Section: Color Palettes -->
+          <div class="form-section">
+            <label class="section-label">7. Bảng Màu Mã QR</label>
+            <div class="palette-grid">
+              <div class="palette-card active" data-palette="rose_red" id="palette-rose-red">
+                <div class="palette-swatch" style="background: linear-gradient(135deg, #FF2A7A, #BE123C);"></div>
+                <div class="palette-info">
+                  <h4>Hồng Đỏ Lãng Mạn</h4>
+                  <p>Rose Pink & Ruby Red</p>
+                </div>
+              </div>
+
+              <div class="palette-card" data-palette="ruby_crimson" id="palette-ruby-crimson">
+                <div class="palette-swatch" style="background: linear-gradient(135deg, #E11D48, #881337);"></div>
+                <div class="palette-info">
+                  <h4>Đỏ Ruby Quyến Rũ</h4>
+                  <p>Crimson & Deep Wine</p>
+                </div>
+              </div>
+
+              <div class="palette-card" data-palette="berry_pink" id="palette-berry-pink">
+                <div class="palette-swatch" style="background: linear-gradient(135deg, #FF1493, #C2185B);"></div>
+                <div class="palette-info">
+                  <h4>Hồng Dâu Ngọt Ngào</h4>
+                  <p>Berry Pink & Magenta</p>
+                </div>
+              </div>
+
+              <div class="palette-card" data-palette="sakura_coral" id="palette-sakura-coral">
+                <div class="palette-swatch" style="background: linear-gradient(135deg, #FB7185, #E11D48);"></div>
+                <div class="palette-info">
+                  <h4>Đào San Hô Tươi Sáng</h4>
+                  <p>Sakura & Coral Red</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Center Logo Emblem -->
+          <div class="form-section">
+            <label class="section-label">8. Biểu Tượng Trung Tâm Mã QR</label>
+            <div class="icon-selector-grid">
+              <button type="button" class="icon-choice-btn active" data-logo="heart" id="logo-heart-btn">
+                <span class="choice-emoji">💖</span>
+                <span class="choice-text">Trái Tim 20/10</span>
+              </button>
+              <button type="button" class="icon-choice-btn" data-logo="rose" id="logo-rose-btn">
+                <span class="choice-emoji">🌹</span>
+                <span class="choice-text">Hoa Hồng</span>
+              </button>
+              <button type="button" class="icon-choice-btn" data-logo="text" id="logo-text-btn">
+                <span class="choice-emoji">✨</span>
+                <span class="choice-text">Chữ 20/10</span>
+              </button>
+              <button type="button" class="icon-choice-btn" data-logo="crown" id="logo-crown-btn">
+                <span class="choice-emoji">👑</span>
+                <span class="choice-text">Vương Miện</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Live Preview & Downloads -->
+        <div class="studio-panel preview-sticky">
+          <div class="panel-header">
+            <h2><span>📱</span> Mã QR & Web Thiệp</h2>
+            <p>Tạo mã QR dẫn trực tiếp tới web thiệp tương tác cho người nhận!</p>
+          </div>
+
+          <div class="qr-display-card">
+
+            <!-- Primary Generate Button -->
+            <button type="button" class="btn-lux btn-primary btn-full" id="btn-generate-web-qr" style="margin-bottom:14px; font-size:1.05rem; padding:14px;">
+              <span>✨</span> TẠO MÃ QR & LINK WEB THIỆP ✨
+            </button>
+
+            <!-- Box displaying generated web link -->
+            <div class="generated-web-card-box" id="web-link-display-box" style="display:none;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+                <h4 style="margin:0;"><span>🌐</span> Link Web Thiệp Dành Riêng Cho Người Ấy:</h4>
+                <span id="tunnel-badge" style="font-size:0.75rem; padding:3px 10px; border-radius:12px; background:#ecfdf5; color:#059669; font-weight:600; border:1px solid #a7f3d0;">🌐 Sẵn sàng truy cập</span>
+              </div>
+              <div class="link-input-group">
+                <input type="text" id="generated-web-url" readonly value="">
+                <button type="button" class="btn-copy-link" id="btn-copy-web-url">Sao Chép</button>
+                <a href="#" target="_blank" class="btn-open-link" id="btn-open-web-url">Mở Web ↗</a>
+              </div>
+            </div>
+
+            <div class="qr-canvas-holder" id="qr-preview-box">
+              <!-- Rendered dynamic SVG goes here -->
+            </div>
+
+            <div class="qr-tagline" id="qr-sub-instruction">
+              <span>💖</span> Quét mã bằng Camera hoặc Zalo để mở Web Thiệp 20/10 <span>✨</span>
+            </div>
+
+            <div class="download-btn-group">
+              <button type="button" class="btn-lux btn-secondary btn-full" id="btn-download-png">
+                <span>📥</span> Tải Mã QR (PNG Siêu Nét 1200px)
+              </button>
+              <button type="button" class="btn-lux btn-secondary btn-full" id="btn-download-svg">
+                <span>📐</span> Tải Mã QR Vector (SVG)
+              </button>
+              <button type="button" class="btn-lux btn-secondary btn-full" id="btn-download-card">
+                <span>🖼️</span> Tải Tấm Thiệp Kèm Mã QR (In Ấn)
+              </button>
+              <button type="button" class="btn-lux btn-secondary btn-full" id="btn-preview-web-card">
+                <span>📱</span> Xem Thử Giao Diện Web Thiệp ↗
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         VIEW 3: GALLERY & PRE-GENERATED ASSETS (Bộ Sưu Tập)
+         =================================================== -->
+    <section class="tab-view" id="view-gallery" aria-label="Pre-generated Image Assets Gallery">
+      <div class="gallery-section-title">
+        <h2>Bộ Sưu Tập Ảnh & Thiệp 20/10 Có Sẵn</h2>
+        <p>Các file ảnh chất lượng cao đã được xuất sẵn trong thư mục dự án, tải về dùng ngay!</p>
+      </div>
+
+      <div class="gallery-grid">
+        <!-- Item 1: High-res QR Standard -->
+        <div class="gallery-card">
+          <div class="gallery-media">
+            <img src="ma_qr_2010_hong_do_tinh_te.png" alt="Mã QR 20/10 màu hồng đỏ tinh tế">
+            <span class="gallery-badge">PNG 1200x1200</span>
+          </div>
+          <div class="gallery-body">
+            <h3 class="gallery-title">Mã QR Hồng Đỏ Trái Tim</h3>
+            <p class="gallery-desc">Mã QR gradient hồng đỏ rực rỡ với huy hiệu trái tim 20/10 ở tâm. Quét là hiện lời chúc yêu thương trọn vẹn.</p>
+            <a href="ma_qr_2010_hong_do_tinh_te.png" download="ma_qr_2010_hong_do_tinh_te.png" class="btn-lux btn-primary btn-full">
+              <span>📥</span> Tải Ảnh PNG
+            </a>
+          </div>
+        </div>
+
+        <!-- Item 2: Rose Emblem QR -->
+        <div class="gallery-card">
+          <div class="gallery-media">
+            <img src="ma_qr_2010_hoa_hong.png" alt="Mã QR 20/10 biểu tượng hoa hồng">
+            <span class="gallery-badge">PNG 1200x1200</span>
+          </div>
+          <div class="gallery-body">
+            <h3 class="gallery-title">Mã QR Hoa Hồng Đỏ Ruby</h3>
+            <p class="gallery-desc">Tone màu đỏ ruby sang trọng kết hợp đóa hoa hồng quyến rũ, cực kỳ thích hợp gửi tặng người thương hoặc mẹ.</p>
+            <a href="ma_qr_2010_hoa_hong.png" download="ma_qr_2010_hoa_hong.png" class="btn-lux btn-primary btn-full">
+              <span>📥</span> Tải Ảnh PNG
+            </a>
+          </div>
+        </div>
+
+        <!-- Item 3: Luxury Poster Greeting Card with QR -->
+        <div class="gallery-card">
+          <div class="gallery-media">
+            <img src="thiep_chuc_mung_2010_kem_ma_qr.png" alt="Thiệp chúc mừng 20/10 kèm mã QR">
+            <span class="gallery-badge">Poster 1200x1600</span>
+          </div>
+          <div class="gallery-body">
+            <h3 class="gallery-title">Thiệp 20/10 Hoàn Chỉnh Kèm QR</h3>
+            <p class="gallery-desc">Bức thiệp tuyệt mỹ với hoa hồng, ánh sáng lung linh, viền vàng kim quý phái và mã QR đặt ở vị trí trung tâm.</p>
+            <a href="thiep_chuc_mung_2010_kem_ma_qr.png" download="thiep_chuc_mung_2010_kem_ma_qr.png" class="btn-lux btn-primary btn-full">
+              <span>📥</span> Tải Thiệp Poster
+            </a>
+          </div>
+        </div>
+
+        <!-- Item 4: Vector SVG -->
+        <div class="gallery-card">
+          <div class="gallery-media">
+            <img src="ma_qr_2010_vector.svg" alt="Mã QR 20/10 định dạng Vector SVG">
+            <span class="gallery-badge">Vector SVG</span>
+          </div>
+          <div class="gallery-body">
+            <h3 class="gallery-title">Mã QR Định Dạng Vector (SVG)</h3>
+            <p class="gallery-desc">File vector vô cực sắc nét đến từng micromet, thích hợp để in thiệp giấy, quà tặng hoặc thiết kế ấn phẩm.</p>
+            <a href="ma_qr_2010_vector.svg" download="ma_qr_2010_vector.svg" class="btn-lux btn-secondary btn-full">
+              <span>📐</span> Tải File Vector SVG
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================
+       MODAL: PHONE SCAN SIMULATOR
+       =================================================== -->
+  <div class="modal-overlay" id="scanner-modal" role="dialog" aria-modal="true" aria-label="Mô phỏng quét mã trên điện thoại">
+    <div class="phone-mockup">
+      <button type="button" class="modal-close-btn" id="close-scanner-modal" title="Đóng">✕</button>
+      <div class="phone-notch"></div>
+      
+      <div class="phone-screen">
+        <div style="text-align: center; color: #fff; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">
+          📸 Camera / Zalo QR Scanner
+        </div>
+
+        <div class="scanner-viewfinder">
+          <div class="laser-beam"></div>
+          <div style="color: rgba(255,255,255,0.7); font-size: 0.85rem; text-align: center;">
+            Đang nhận diện mã QR...
+          </div>
+        </div>
+
+        <!-- Scanned Result Popup Sheet -->
+        <div class="scanned-result-popup">
+          <div class="result-header">
+            <span>✨</span> Lời Chúc Nhận Được:
+          </div>
+          <div class="result-text" id="scanned-text-result">
+            <!-- Scanned message appears here -->
+          </div>
+          <div style="margin-top: 14px; text-align: center;">
+            <button type="button" class="btn-lux btn-primary" style="padding: 10px 20px; font-size: 0.85rem;" onclick="document.getElementById('scanner-modal').classList.remove('active')">
+              💖 Tuyệt vời, cảm ơn!
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: QR Code to open website on mobile -->
+  <div class="modal-overlay" id="mobile-qr-modal" role="dialog" aria-modal="true" aria-label="Mã QR mở web trên điện thoại">
+    <div class="phone-mockup" style="max-width: 380px; text-align: center; background: #fff; padding: 24px; border-radius: 24px; box-shadow: 0 25px 60px rgba(190, 18, 60, 0.35); border: 2px solid #fecdd3;">
+      <button type="button" class="modal-close-btn" id="close-mobile-qr-modal" style="font-size: 1.2rem; cursor: pointer;">✕</button>
+      <h3 style="color: #be123c; margin-bottom: 8px; font-size: 1.15rem; font-weight: 800;">📱 Quét Mã Vào Web Bằng Điện Thoại</h3>
+      <p style="color: #6b7280; font-size: 0.82rem; margin-bottom: 14px;">Mở Camera hoặc Zalo trên điện thoại quét mã dưới đây để mở web ngay (hỗ trợ cả 4G, 5G và Wi-Fi):</p>
+      <div id="mobile-entry-qr" style="display: flex; justify-content: center; margin-bottom: 14px; background: #fff; padding: 10px; border-radius: 12px; border: 1px dashed #fda4af;">
+        <!-- Dynamic QR rendered here -->
+      </div>
+      <div style="background: #fff1f2; padding: 8px 12px; border-radius: 10px; border: 1px solid #fecdd3; word-break: break-all; font-size: 0.8rem; color: #9f1239; font-weight: 600; margin-bottom: 12px;" id="mobile-modal-url-text">
+      </div>
+      <button type="button" class="btn-lux btn-primary btn-full" id="btn-copy-mobile-modal" style="padding: 10px; font-size: 0.85rem;">
+        📋 Sao Chép Đường Link
+      </button>
+    </div>
+  </div>
+
+  <!-- QR Code Bundle Script -->
+  <script src="assets/qrcode.bundle.js"></script>
+  <!-- Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>
