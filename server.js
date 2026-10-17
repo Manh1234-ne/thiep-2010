@@ -113,7 +113,8 @@ const server = http.createServer((req, res) => {
       lanIp: LAN_IP,
       localUrl: `http://localhost:${PORT}`,
       lanUrl: `http://${LAN_IP}:${PORT}`,
-      tunnelUrl: currentTunnelUrl
+      tunnelUrl: currentTunnelUrl,
+      cloudUrl: 'https://manh1234-ne.github.io/thiep-2010'
     }));
     return;
   }

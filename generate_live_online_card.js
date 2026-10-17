@@ -3,7 +3,7 @@ const sharp = require('sharp');
 const jsQR = require('jsqr');
 const fs = require('fs');
 
-const PUBLIC_URL = 'https://injection-determination-kansas-survive.trycloudflare.com/card.html';
+const PUBLIC_URL = 'https://manh1234-ne.github.io/thiep-2010/card.html';
 
 function isFinderPattern(r, c, size) {
   if (r <= 7 && c <= 7) return true;

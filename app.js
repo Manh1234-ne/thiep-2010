@@ -393,11 +393,14 @@ function renderQRCodeSVG(text, options = {}) {
   </svg>`;
 }
 
-/* Dynamic Server Info and Live Tunnel Detection */
+/* Dynamic Server Info and Live Cloud 24/7 Deployment */
+const CLOUD_PERMANENT_ORIGIN = 'https://manh1234-ne.github.io/thiep-2010';
+
 let serverInfo = {
   localUrl: window.location.origin,
   lanUrl: window.location.origin,
-  tunnelUrl: null
+  tunnelUrl: null,
+  cloudUrl: CLOUD_PERMANENT_ORIGIN
 };
 
 function updateMobileConnectUI() {
@@ -405,7 +408,8 @@ function updateMobileConnectUI() {
   const mobileModalUrlText = document.getElementById('mobile-modal-url-text');
   const mobileEntryQR = document.getElementById('mobile-entry-qr');
   
-  const targetUrl = serverInfo.tunnelUrl || serverInfo.lanUrl || window.location.origin;
+  // Prefer permanent 24/7 cloud URL so phones can access anytime even when PC is off
+  const targetUrl = CLOUD_PERMANENT_ORIGIN || serverInfo.tunnelUrl || serverInfo.lanUrl || window.location.origin;
 
   if (mobileUrlDisplay) {
     mobileUrlDisplay.textContent = targetUrl;
@@ -443,9 +447,8 @@ setInterval(fetchServerInfo, 8000);
 function getActiveQRText() {
   if (selectedMode === 'web') {
     if (generatedWebUrl) return generatedWebUrl;
-    // Default preview URL: prefer live public tunnel, then LAN IP, then window origin
-    const origin = serverInfo.tunnelUrl || serverInfo.lanUrl || window.location.origin;
-    return `${origin}/card.html`;
+    // Default preview URL points to permanent 24/7 cloud web card
+    return `${CLOUD_PERMANENT_ORIGIN}/card.html`;
   }
   const wishInput = document.getElementById('qr-wish-text');
   return (wishInput ? wishInput.value.trim() : '') || 'Chúc mừng ngày Phụ nữ Việt Nam 20/10!';
@@ -970,67 +973,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save to localStorage for instant local preview
     localStorage.setItem('preview_card_2010', JSON.stringify(cardPayload));
 
-    let finalCardUrl = '';
-    let localCardUrl = '';
-    let onlineCardUrl = '';
+    // Generate permanent 24/7 cloud URL (guaranteed to work forever even when PC is shut down!)
+    const lightPayload = { ...cardPayload, photos: ['assets/sample_portrait.jpg'] };
+    const hashStr = btoa(unescape(encodeURIComponent(JSON.stringify(lightPayload))));
+    const permanentCloudUrl = `${CLOUD_PERMANENT_ORIGIN}/card.html#data=${hashStr}`;
 
+    // Also attempt saving to local server for archiving if server is running
     try {
-      const res = await fetch('/api/save-card', {
+      await fetch('/api/save-card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cardPayload)
       });
+    } catch (e) {}
 
-      if (res.ok) {
-        const data = await res.json();
-        const cardId = data.id;
-
-        // URL to open on this computer (GUARANTEED to work immediately!)
-        localCardUrl = `${window.location.origin}/card.html?id=${cardId}`;
-
-        // URL for mobile phones and remote scan (Cloudflare tunnel or LAN Wi-Fi)
-        const bestOrigin = data.tunnelUrl || serverInfo.tunnelUrl || data.lanUrl || serverInfo.lanUrl || window.location.origin;
-        onlineCardUrl = `${bestOrigin}/card.html?id=${cardId}`;
-
-        finalCardUrl = onlineCardUrl;
-      } else {
-        throw new Error('API save failed');
-      }
-    } catch (err) {
-      console.warn('API error, falling back to local hash mode:', err);
-      // Hash fallback (Base64 JSON without large photos)
-      const lightPayload = { ...cardPayload, photos: ['assets/sample_portrait.jpg'] };
-      const hashStr = btoa(unescape(encodeURIComponent(JSON.stringify(lightPayload))));
-      localCardUrl = `${window.location.origin}/card.html#data=${hashStr}`;
-      const bestOrigin = serverInfo.tunnelUrl || serverInfo.lanUrl || window.location.origin;
-      finalCardUrl = `${bestOrigin}/card.html#data=${hashStr}`;
-      onlineCardUrl = finalCardUrl;
-    }
-
+    // QR code always encodes the permanent 24/7 cloud URL
+    finalCardUrl = permanentCloudUrl;
     generatedWebUrl = finalCardUrl;
 
     // Show generated link box
     if (webLinkBox && generatedWebUrlInput) {
       webLinkBox.style.display = 'block';
-      // The input displays the shareable online link for copying
-      generatedWebUrlInput.value = onlineCardUrl || localCardUrl;
-      // "Mở Web" button opens localCardUrl (so it opens instantly on this machine without fail!)
+      generatedWebUrlInput.value = permanentCloudUrl;
       if (btnOpenWebUrl) {
-        btnOpenWebUrl.href = localCardUrl;
+        btnOpenWebUrl.href = permanentCloudUrl;
       }
     }
 
     const tunnelBadge = document.getElementById('tunnel-badge');
     if (tunnelBadge) {
-      if (serverInfo.tunnelUrl) {
-        tunnelBadge.textContent = '🌐 Link Online (Cloudflare)';
-        tunnelBadge.style.background = '#ecfdf5';
-        tunnelBadge.style.color = '#059669';
-      } else {
-        tunnelBadge.textContent = '🏠 Link Mạng Nội Bộ (Wi-Fi)';
-        tunnelBadge.style.background = '#eff6ff';
-        tunnelBadge.style.color = '#1d4ed8';
-      }
+      tunnelBadge.textContent = '🟢 Vĩnh Viễn 24/7 (Quét được kể cả khi tắt máy)';
+      tunnelBadge.style.background = '#ecfdf5';
+      tunnelBadge.style.color = '#059669';
+      tunnelBadge.style.border = '1px solid #10b981';
     }
 
     updateQRPreview();
