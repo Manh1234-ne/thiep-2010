@@ -48,16 +48,23 @@
       <!-- Bouquet Showcase Section -->
       <article class="bouquet-showcase" id="bouquet-card">
         <div class="bouquet-halo"></div>
-        <div class="bouquet-img-wrapper" id="bouquet-img-box" title="Chạm để ngắm bó hoa tươi thắm 💐">
+        <div class="bouquet-img-wrapper" id="bouquet-img-box" title="Nhấn vào hoa để mở món quà bí mật 💐">
           <img id="display-bouquet-img" src="assets/bouquet_red_roses.jpg" alt="Bó hoa chúc mừng 20/10" class="bouquet-photo">
           <div class="bouquet-sparkle-ribbon">
             <span>💐 Bó Hoa Dành Tặng Bạn</span>
           </div>
         </div>
+
+        <!-- Prompt directly below bouquet -->
+        <div class="bouquet-tap-prompt" id="bouquet-tap-prompt" role="button" tabindex="0" title="Nhấn vào hoa">
+          <span class="pulsing-tap-hand">👆</span>
+          <span class="prompt-text">Nhấn vào hoa</span>
+          <span class="prompt-sparkle">💖</span>
+        </div>
       </article>
 
-      <!-- 3D Letter & Envelope Interaction -->
-      <article class="envelope-presentation">
+      <!-- 3D Letter & Envelope Interaction (Appears after 3s) -->
+      <article class="envelope-presentation" id="envelope-presentation">
         <div class="envelope-container" id="card-envelope" title="Chạm vào phong bì để mở thư!">
           <!-- Wax Seal -->
           <div class="wax-seal-btn" id="card-wax-seal">

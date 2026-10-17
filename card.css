@@ -222,12 +222,38 @@ body {
   align-items: center;
   text-align: center;
   min-height: 100vh;
+  transition: justify-content 0.6s ease;
 }
 
-/* Recipient Header Badge */
+/* In initial state: Center the bouquet prominently */
+body.stage-initial .card-hero-scene {
+  justify-content: center;
+  padding-top: 10px;
+  padding-bottom: 30px;
+}
+
+/* Recipient Header Badge: hidden initially, slides in when bloomed */
 .recipient-badge-box {
   margin-top: 15px;
   margin-bottom: 25px;
+  transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.stage-initial .recipient-badge-box {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  overflow: hidden;
+  transform: translateY(-20px);
+  pointer-events: none;
+}
+
+body.stage-bloomed .recipient-badge-box {
+  opacity: 1;
+  max-height: 250px;
+  margin-top: 15px;
+  margin-bottom: 20px;
+  transform: translateY(0);
 }
 
 .golden-crown-tag {
@@ -286,6 +312,87 @@ body {
   position: relative;
   flex: 0 0 320px;
   max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.85s cubic-bezier(0.34, 1.56, 0.64, 1), margin 0.85s ease;
+  transform-origin: center top;
+}
+
+body.stage-initial .bouquet-showcase {
+  transform: scale(1.06);
+  animation: bouquetBreath 3s ease-in-out infinite alternate;
+}
+
+@keyframes bouquetBreath {
+  0% { transform: scale(1.03) translateY(0); }
+  100% { transform: scale(1.07) translateY(-6px); }
+}
+
+/* Prompt directly below the bouquet */
+.bouquet-tap-prompt {
+  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+  border: 2px solid #f43f5e;
+  border-radius: 40px;
+  padding: 12px 30px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #be123c;
+  box-shadow: 0 8px 25px rgba(244, 63, 94, 0.35), 0 0 15px rgba(255, 215, 0, 0.35);
+  cursor: pointer;
+  animation: promptPulse 1.6s ease-in-out infinite;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.35s ease;
+  z-index: 10;
+}
+
+.bouquet-tap-prompt:hover,
+.bouquet-tap-prompt:active {
+  transform: scale(1.08);
+  background: linear-gradient(135deg, #ffe4e6, #fecdd3);
+  box-shadow: 0 12px 32px rgba(244, 63, 94, 0.55), 0 0 25px rgba(255, 215, 0, 0.6);
+}
+
+.pulsing-tap-hand {
+  font-size: 1.35rem;
+  animation: bounceHand 1.2s infinite ease-in-out;
+}
+
+@keyframes promptPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8px 25px rgba(244, 63, 94, 0.35);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 14px 34px rgba(244, 63, 94, 0.6), 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+}
+
+/* When bloomed: bouquet shrinks down */
+body.stage-bloomed .bouquet-showcase {
+  transform: scale(0.7);
+  animation: none;
+}
+
+body.stage-bloomed .bouquet-tap-prompt {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.7);
+  display: none;
+}
+
+@media (max-width: 768px) {
+  body.stage-bloomed .bouquet-showcase {
+    transform: scale(0.65);
+    margin-bottom: -45px;
+  }
 }
 
 .bouquet-halo {
@@ -344,13 +451,38 @@ body {
   -webkit-backdrop-filter: blur(4px);
 }
 
-/* 3D Envelope Presentation */
+/* 3D Envelope Presentation (Initially hidden, revealed after 3s) */
 .envelope-presentation {
   flex: 0 0 380px;
   max-width: 92vw;
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
+  opacity: 0;
+  transform: translateY(40px) scale(0.9);
+  transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1), transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.envelope-presentation.revealed {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  animation: letterSlideUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes letterSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(50px) scale(0.85);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .envelope-container {
@@ -613,7 +745,7 @@ body {
   50% { transform: translateY(-5px); }
 }
 
-/* Bottom Action Dock */
+/* Bottom Action Dock: hidden initially, reveals when letter is ready */
 .bottom-action-dock {
   position: fixed;
   bottom: 20px;
@@ -630,6 +762,14 @@ body {
   -webkit-backdrop-filter: blur(12px);
   z-index: 40;
   max-width: 95vw;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+
+body.stage-letter-ready .bottom-action-dock {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .dock-btn {

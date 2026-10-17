@@ -417,12 +417,79 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (elLetterMsg) elLetterMsg.textContent = cardData.message || DEFAULT_CARD_DATA.message;
   if (elLetterSender) elLetterSender.textContent = cardData.sender || DEFAULT_CARD_DATA.sender;
 
-  // 4. Initialize Rain of Wishes & Photos
+  // 4. Initialize Rain of Wishes & Photos (Paused initially until flower is tapped)
   const rainContainer = document.getElementById('rain-container');
   const rainEngine = new RainEngine(rainContainer, cardData.wishes, cardData.photos);
-  rainEngine.start();
 
-  // 5. Envelope Open / Close Interaction
+  // Set initial stage: Bouquet centered with tap prompt
+  document.body.classList.add('stage-initial');
+  let isBloomed = false;
+
+  // 5. Flower Tap Interaction Flow
+  function triggerBloom(e) {
+    if (isBloomed) {
+      // Subsequent clicks: burst flowers and hearts
+      petalEngine.burst(25);
+      const clientX = e && e.clientX ? e.clientX : window.innerWidth / 2;
+      const clientY = e && e.clientY ? e.clientY : window.innerHeight / 2;
+      rainEngine.burstHeartAt(clientX, clientY);
+      return;
+    }
+    isBloomed = true;
+
+    // 1. Bouquet shrinks, prompt hides
+    document.body.classList.remove('stage-initial');
+    document.body.classList.add('stage-bloomed');
+
+    // 2. Music plays immediately (gesture-unlocked for mobile iOS/Android)
+    synth.init();
+    synth.playOpenChime();
+    if (!isMusicActive) {
+      synth.startMelody(cardData.music || 'an_nut_nho');
+    }
+
+    // 3. Rain of wishes, photos, and petals begin
+    const clientX = e && e.clientX ? e.clientX : window.innerWidth / 2;
+    const clientY = e && e.clientY ? e.clientY : window.innerHeight / 2;
+    rainEngine.burstHeartAt(clientX, clientY);
+    petalEngine.burst(50);
+
+    rainEngine.start();
+    rainEngine.burstWishes(5);
+    rainEngine.burstPhotos(3);
+
+    // 4. Approximately 3 seconds later: Reveal the 3D letter & envelope
+    setTimeout(() => {
+      const envelopePresentation = document.getElementById('envelope-presentation');
+      if (envelopePresentation) {
+        envelopePresentation.classList.add('revealed');
+        document.body.classList.add('stage-letter-ready');
+        petalEngine.burst(35);
+        rainEngine.burstWishes(3);
+
+        // Smooth scroll on mobile to bring the envelope into clear focus
+        if (window.innerWidth <= 768) {
+          envelopePresentation.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }, 3000);
+  }
+
+  // Attach tap events to both the bouquet and the "Nhấn vào hoa" prompt
+  const bouquetImgBox = document.getElementById('bouquet-img-box');
+  const bouquetPrompt = document.getElementById('bouquet-tap-prompt');
+  const bouquetCard = document.getElementById('bouquet-card');
+
+  if (bouquetImgBox) {
+    bouquetImgBox.addEventListener('click', triggerBloom);
+    bouquetImgBox.addEventListener('touchend', (e) => { e.preventDefault(); triggerBloom(e); }, { passive: false });
+  }
+  if (bouquetPrompt) {
+    bouquetPrompt.addEventListener('click', triggerBloom);
+    bouquetPrompt.addEventListener('touchend', (e) => { e.preventDefault(); triggerBloom(e); }, { passive: false });
+  }
+
+  // 6. Envelope Open / Close Interaction
   const envelope = document.getElementById('card-envelope');
   const waxSeal = document.getElementById('card-wax-seal');
   const btnTouchOpen = document.getElementById('btn-touch-open');
@@ -437,7 +504,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       rainEngine.burstWishes(4);
       rainEngine.burstPhotos(2);
 
-      // Start music immediately within user click/touch gesture (required by mobile iOS/Android)
+      // Ensure music is active
       if (!isMusicActive) {
         synth.startMelody(cardData.music || 'an_nut_nho');
       }
@@ -455,16 +522,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (btnTouchOpen) {
     btnTouchOpen.addEventListener('click', openEnvelope);
     btnTouchOpen.addEventListener('touchend', (e) => { e.preventDefault(); openEnvelope(); }, { passive: false });
-  }
-
-  // Bouquet Click: Bursts flowers and hearts
-  const bouquetCard = document.getElementById('bouquet-img-box');
-  if (bouquetCard) {
-    bouquetCard.addEventListener('click', (e) => {
-      petalEngine.burst(25);
-      rainEngine.burstHeartAt(e.clientX, e.clientY);
-      synth.playNote(783.99, audioCtx ? audioCtx.currentTime : 0, 1.2, 0.15, 'sine');
-    });
   }
 
   // 6. Floating Music Disc Toggle
