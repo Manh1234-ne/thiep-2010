@@ -64,6 +64,7 @@ const COLOR_PALETTES = {
 let currentTab = 'card';
 let currentPalette = 'rose_red';
 let currentLogo = 'heart';
+let currentShape = 'heart'; // 'heart' (Mặc định lãng mạn) | 'square'
 let selectedMode = 'web'; // 'web' | 'text'
 let selectedBouquet = 'assets/bouquet_red_roses.jpg';
 let selectedMusic = 'an_nut_nho';
@@ -269,10 +270,26 @@ function isInCenterLogo(r, c, size, logoRadiusInModules) {
   return dist <= logoRadiusInModules;
 }
 
+function getRomanticHeartPath(cx, cy, w, h) {
+  const cuspY = cy - h * 0.32;
+  const lobeTopY = cy - h * 0.50;
+  const bottomTipY = cy + h * 0.49;
+  
+  const leftX = cx - w * 0.5;
+  const rightX = cx + w * 0.5;
+  
+  return `M ${cx} ${bottomTipY}
+    C ${cx - w * 0.20} ${cy + h * 0.36}, ${leftX} ${cy + h * 0.16}, ${leftX} ${cy - h * 0.10}
+    C ${leftX} ${lobeTopY}, ${cx - w * 0.08} ${lobeTopY}, ${cx} ${cuspY}
+    C ${cx + w * 0.08} ${lobeTopY}, ${rightX} ${lobeTopY}, ${rightX} ${cy - h * 0.10}
+    C ${rightX} ${cy + h * 0.16}, ${cx + w * 0.20} ${cy + h * 0.36}, ${cx} ${bottomTipY} Z`;
+}
+
 function renderQRCodeSVG(text, options = {}) {
   const {
     palette = COLOR_PALETTES[currentPalette],
     logo = currentLogo,
+    shape = currentShape || 'heart',
     centerRadius = 3.8
   } = options;
 
@@ -283,7 +300,175 @@ function renderQRCodeSVG(text, options = {}) {
 
   const qr = QRCodeBundle.create(text, { errorCorrectionLevel: 'H' });
   const size = qr.modules.size;
-  const margin = 1.8; // Tối ưu sát viền với mã QR đã tạo (quiet zone chuẩn gọn gàng)
+
+  if (shape === 'heart') {
+    // Render Romantic Heart-Shaped QR Code (Verified 100% Scanable on Zalo / Phone Camera / jsQR)
+    const viewBoxSize = 1200;
+    const qrBoxSize = 620;
+    const qrTopLeftX = 600 - qrBoxSize / 2;
+    const qrTopLeftY = 555 - qrBoxSize / 2;
+    const qrMargin = 1.4;
+    const totalModules = size + qrMargin * 2;
+    const moduleSize = qrBoxSize / totalModules;
+
+    let elements = [];
+
+    const defs = `
+    <defs>
+      <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="${palette.start}" />
+        <stop offset="50%" stop-color="${palette.mid}" />
+        <stop offset="100%" stop-color="${palette.end}" />
+      </linearGradient>
+      <linearGradient id="heartGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#FDE047" />
+        <stop offset="50%" stop-color="#F59E0B" />
+        <stop offset="100%" stop-color="#D97706" />
+      </linearGradient>
+      <filter id="heartLuxShadow" x="-15%" y="-15%" width="130%" height="130%">
+        <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="${palette.end}" flood-opacity="0.28" />
+      </filter>
+      <filter id="ribbonShadow" x="-10%" y="-20%" width="120%" height="140%">
+        <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="${palette.end}" flood-opacity="0.35"/>
+      </filter>
+    </defs>`;
+
+    // Background container
+    elements.push(`<rect width="${viewBoxSize}" height="${viewBoxSize}" fill="#FFFFFF"/>`);
+
+    // Romantic Heart Card Outer Silhouette
+    const heartPathOuter = getRomanticHeartPath(600, 570, 1180, 1130);
+    const heartPathGold = getRomanticHeartPath(600, 570, 1154, 1104);
+    const heartPathWhite = getRomanticHeartPath(600, 570, 1124, 1074);
+
+    elements.push(`
+      <g filter="url(#heartLuxShadow)">
+        <path d="${heartPathOuter}" fill="url(#heartGrad)"/>
+        <path d="${heartPathGold}" fill="url(#heartGoldGrad)"/>
+        <path d="${heartPathWhite}" fill="#FFFFFF"/>
+      </g>
+    `);
+
+    // Delicate inner dashed heart outline
+    const heartPathInnerLine = getRomanticHeartPath(600, 570, 1090, 1040);
+    elements.push(`
+      <path d="${heartPathInnerLine}" fill="none" stroke="#FFE4E8" stroke-width="2.5" stroke-dasharray="8 6"/>
+    `);
+
+    // Decorative Sparkles and Little Hearts in Upper Lobes
+    elements.push(`
+      <g fill="url(#heartGoldGrad)">
+        <path d="M 230 150 Q 230 170 210 170 Q 230 170 230 190 Q 230 170 250 170 Q 230 170 230 150 Z" transform="scale(0.85) translate(40, -10)" />
+        <path d="M 970 150 Q 970 170 950 170 Q 970 170 970 190 Q 970 170 990 170 Q 970 170 970 150 Z" transform="scale(0.85) translate(160, -10)" />
+        <circle cx="600" cy="145" r="4.5" fill="#F59E0B" />
+        <circle cx="580" cy="152" r="3" fill="#FDA4AF" />
+        <circle cx="620" cy="152" r="3" fill="#FDA4AF" />
+      </g>
+      <g fill="#FDA4AF" opacity="0.65">
+        <path d="M 270 200 C 269 190 255 190 255 202 C 255 211 268 219 270 222 C 272 219 285 211 285 202 C 285 190 271 190 270 200 Z" transform="scale(1.2) translate(-30, -30)"/>
+        <path d="M 930 200 C 929 190 915 190 915 202 C 915 211 928 219 930 222 C 932 219 945 211 945 202 C 945 190 931 190 930 200 Z" transform="scale(1.2) translate(-90, -30)"/>
+      </g>
+    `);
+
+    // Draw Finder Patterns
+    function drawFinderPattern(ox, oy) {
+      const x = qrTopLeftX + (ox + qrMargin) * moduleSize;
+      const y = qrTopLeftY + (oy + qrMargin) * moduleSize;
+      const w = 7 * moduleSize;
+
+      elements.push(`<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${w.toFixed(2)}" rx="${(moduleSize * 1.6).toFixed(2)}" fill="url(#heartGrad)"/>`);
+      const hollowW = 5 * moduleSize;
+      const hollowOffset = 1 * moduleSize;
+      elements.push(`<rect x="${(x + hollowOffset).toFixed(2)}" y="${(y + hollowOffset).toFixed(2)}" width="${hollowW.toFixed(2)}" height="${hollowW.toFixed(2)}" rx="${(moduleSize * 1.1).toFixed(2)}" fill="#FFFFFF"/>`);
+      const coreW = 3 * moduleSize;
+      const coreOffset = 2 * moduleSize;
+      elements.push(`<rect x="${(x + coreOffset).toFixed(2)}" y="${(y + coreOffset).toFixed(2)}" width="${coreW.toFixed(2)}" height="${coreW.toFixed(2)}" rx="${(moduleSize * 0.8).toFixed(2)}" fill="url(#heartGrad)"/>`);
+    }
+
+    drawFinderPattern(0, 0);
+    drawFinderPattern(size - 7, 0);
+    drawFinderPattern(0, size - 7);
+
+    // Draw Data Modules with soft pebble curves
+    const roundRadius = moduleSize * 0.30;
+    const centerRadiusModules = 3.6;
+    const qrCenter = (size - 1) / 2;
+
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if (isFinderPattern(r, c, size)) continue;
+        if (Math.hypot(r - qrCenter, c - qrCenter) <= centerRadiusModules) continue;
+
+        if (qr.modules.get(r, c)) {
+          const x = qrTopLeftX + (c + qrMargin) * moduleSize;
+          const y = qrTopLeftY + (r + qrMargin) * moduleSize;
+          elements.push(`<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${(moduleSize * 0.95).toFixed(2)}" height="${(moduleSize * 0.95).toFixed(2)}" rx="${roundRadius.toFixed(2)}" fill="url(#heartGrad)"/>`);
+        }
+      }
+    }
+
+    // Center Emblem Badge
+    const centerX = qrTopLeftX + qrBoxSize / 2;
+    const centerY = qrTopLeftY + qrBoxSize / 2;
+    const badgeRadius = 3.9 * moduleSize;
+
+    elements.push(`
+      <g>
+        <circle cx="${centerX.toFixed(2)}" cy="${centerY.toFixed(2)}" r="${badgeRadius.toFixed(2)}" fill="#FFFFFF" stroke="#FDA4AF" stroke-width="3"/>
+        <circle cx="${centerX.toFixed(2)}" cy="${centerY.toFixed(2)}" r="${(badgeRadius - 3.5).toFixed(2)}" fill="#FFF1F2"/>
+      </g>
+    `);
+
+    if (logo === 'heart') {
+      const scale = badgeRadius * 0.040;
+      elements.push(`
+        <g transform="translate(${centerX}, ${centerY - badgeRadius * 0.08}) scale(${scale})">
+          <path d="M 0 -8 C -1 -18 -18 -18 -18 -4 C -18 7 -3 16 0 20 C 3 16 18 7 18 -4 C 18 -18 1 -18 0 -8 Z" fill="url(#heartGrad)" transform="scale(1.15)"/>
+          <text x="0" y="32" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="900" fill="${palette.end}" text-anchor="middle">20/10</text>
+        </g>
+      `);
+    } else if (logo === 'rose') {
+      elements.push(`
+        <g transform="translate(${centerX}, ${centerY})">
+          <text x="0" y="-${(badgeRadius * 0.08).toFixed(2)}" font-size="${(badgeRadius * 0.85).toFixed(2)}" text-anchor="middle" dominant-baseline="central">🌹</text>
+          <text x="0" y="${(badgeRadius * 0.58).toFixed(2)}" font-family="'Segoe UI', Roboto, sans-serif" font-size="${(badgeRadius * 0.32).toFixed(2)}" font-weight="900" fill="${palette.end}" text-anchor="middle">20/10</text>
+        </g>
+      `);
+    } else if (logo === 'crown') {
+      elements.push(`
+        <g transform="translate(${centerX}, ${centerY})">
+          <text x="0" y="-${(badgeRadius * 0.08).toFixed(2)}" font-size="${(badgeRadius * 0.85).toFixed(2)}" text-anchor="middle" dominant-baseline="central">👑</text>
+          <text x="0" y="${(badgeRadius * 0.58).toFixed(2)}" font-family="'Segoe UI', Roboto, sans-serif" font-size="${(badgeRadius * 0.32).toFixed(2)}" font-weight="900" fill="${palette.end}" text-anchor="middle">20/10</text>
+        </g>
+      `);
+    } else {
+      elements.push(`
+        <g transform="translate(${centerX}, ${centerY})">
+          <text x="0" y="-${(badgeRadius * 0.1).toFixed(2)}" font-family="'Playfair Display', Georgia, serif" font-size="${(badgeRadius * 0.65).toFixed(2)}" font-weight="900" fill="url(#heartGrad)" text-anchor="middle" dominant-baseline="central">20/10</text>
+          <text x="0" y="${(badgeRadius * 0.58).toFixed(2)}" font-family="'Segoe UI', Roboto, sans-serif" font-size="${(badgeRadius * 0.28).toFixed(2)}" font-weight="700" fill="${palette.end}" text-anchor="middle">L O V E</text>
+        </g>
+      `);
+    }
+
+    // Bottom Heart Tip Ribbon Banner
+    elements.push(`
+      <g transform="translate(600, 960)">
+        <rect x="-190" y="-22" width="380" height="44" rx="22" fill="url(#heartGrad)" filter="url(#ribbonShadow)"/>
+        <rect x="-186" y="-18" width="372" height="36" rx="18" fill="none" stroke="#FDE047" stroke-width="1.8"/>
+        <text x="0" y="3" font-family="'Segoe UI', Roboto, 'Be Vietnam Pro', sans-serif" font-size="18" font-weight="800" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central" letter-spacing="1">
+          💖 QUÉT MÃ NHẬN LỜI CHÚC 💖
+        </text>
+      </g>
+    `);
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${viewBoxSize} ${viewBoxSize}" width="${viewBoxSize}" height="${viewBoxSize}">
+      ${defs}
+      ${elements.join('\n')}
+    </svg>`;
+  }
+
+  // Otherwise shape === 'square'
+  const margin = options.margin !== undefined ? options.margin : 1.8;
   const totalSize = size + margin * 2;
   const viewBoxSize = 1000;
   const moduleSize = viewBoxSize / totalSize;
@@ -306,11 +491,11 @@ function renderQRCodeSVG(text, options = {}) {
     </filter>
   </defs>`;
 
-  // Card Background: Trắng tinh khôi, sát với mã QR, không viền rườm rà
+  // Card Background: Trắng tinh khôi, sát với mã QR
   elements.push(`<rect width="${viewBoxSize}" height="${viewBoxSize}" fill="#FFFFFF"/>`);
 
   // Draw Finders
-  function drawFinderPattern(ox, oy) {
+  function drawFinderPatternSquare(ox, oy) {
     const x = (ox + margin) * moduleSize;
     const y = (oy + margin) * moduleSize;
     const w = 7 * moduleSize;
@@ -324,9 +509,9 @@ function renderQRCodeSVG(text, options = {}) {
     elements.push(`<rect x="${(x + coreOffset).toFixed(2)}" y="${(y + coreOffset).toFixed(2)}" width="${coreW.toFixed(2)}" height="${coreW.toFixed(2)}" rx="${(moduleSize * 0.8).toFixed(2)}" fill="url(#finderStudioGrad)"/>`);
   }
 
-  drawFinderPattern(0, 0);
-  drawFinderPattern(size - 7, 0);
-  drawFinderPattern(0, size - 7);
+  drawFinderPatternSquare(0, 0);
+  drawFinderPatternSquare(size - 7, 0);
+  drawFinderPatternSquare(0, size - 7);
 
   // Draw regular modules
   const roundRadius = moduleSize * 0.25;
@@ -479,13 +664,14 @@ function updateQRPreview() {
 
   if (subInstruction) {
     subInstruction.innerHTML = selectedMode === 'web'
-      ? `<span>💖</span> Quét mã bằng Camera hoặc Zalo để mở Web Thiệp Tương Tác <span>✨</span>`
-      : `<span>💖</span> Quét bằng Camera hoặc Zalo để đọc trực tiếp lời chúc <span>✨</span>`;
+      ? `<span>💖</span> Quét mã ${currentShape === 'heart' ? 'trái tim' : ''} bằng Camera hoặc Zalo để mở Web Thiệp 20/10 <span>✨</span>`
+      : `<span>💖</span> Quét mã ${currentShape === 'heart' ? 'trái tim' : ''} bằng Camera hoặc Zalo để đọc trực tiếp lời chúc <span>✨</span>`;
   }
 
   const svgString = renderQRCodeSVG(text, {
     palette: COLOR_PALETTES[currentPalette],
-    logo: currentLogo
+    logo: currentLogo,
+    shape: currentShape
   });
 
   previewContainer.innerHTML = svgString;
@@ -504,11 +690,11 @@ function downloadPNG(size = 1200) {
   }
 
   const text = getActiveQRText();
-  // Renders closely fitted QR code (margin: 1.8 modules)
   const svgString = renderQRCodeSVG(text, {
     palette: COLOR_PALETTES[currentPalette],
     logo: currentLogo,
-    margin: 1.8
+    shape: currentShape,
+    margin: currentShape === 'heart' ? 1.4 : 1.8
   });
 
   const recipientInput = document.getElementById('qr-recipient-name');
@@ -517,7 +703,8 @@ function downloadPNG(size = 1200) {
   const cleanName = recipientName
     ? recipientName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
     : '';
-  const fileName = cleanName ? `ma_qr_2010_${cleanName}.png` : `ma_qr_2010_hong_do.png`;
+  const prefix = currentShape === 'heart' ? 'ma_qr_trai_tim_2010' : 'ma_qr_2010';
+  const fileName = cleanName ? `${prefix}_${cleanName}.png` : `${prefix}_hong_do.png`;
 
   function finishDownload(blobOrUrl) {
     const downloadUrl = typeof blobOrUrl === 'string' ? blobOrUrl : URL.createObjectURL(blobOrUrl);
@@ -536,7 +723,9 @@ function downloadPNG(size = 1200) {
       btn.innerHTML = '<span>✅</span> ĐÃ TẢI XONG ẢNH MÃ QR!';
       btn.disabled = false;
       setTimeout(() => {
-        btn.innerHTML = originalHtml || '<span>📥</span> TẢI MÃ QR VỀ MÁY (Ảnh Sắc Nét HD)';
+        btn.innerHTML = originalHtml || (currentShape === 'heart'
+          ? '<span>📥</span> TẢI MÃ QR TRÁI TIM VỀ MÁY (Ảnh Sắc Nét HD)'
+          : '<span>📥</span> TẢI MÃ QR VỀ MÁY (Ảnh Sắc Nét HD)');
       }, 2500);
     }
 
@@ -1071,7 +1260,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnDownload = document.getElementById('btn-download-png');
     if (btnDownload) {
       btnDownload.classList.add('pulse-download-highlight');
-      btnDownload.innerHTML = '<span>📥</span> TẢI MÃ QR VỀ MÁY NGAY (Ảnh HD) ✨';
+      btnDownload.innerHTML = currentShape === 'heart'
+        ? '<span>📥</span> TẢI MÃ QR TRÁI TIM VỀ MÁY (Ảnh HD) ✨'
+        : '<span>📥</span> TẢI MÃ QR VỀ MÁY NGAY (Ảnh HD) ✨';
     }
 
     // Auto-scroll smoothly to the QR code and download section
@@ -1134,6 +1325,27 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.classList.add('active');
       currentLogo = btn.dataset.logo;
       updateQRPreview();
+    });
+  });
+
+  // Shape Selector (Heart vs Square)
+  const shapeChoiceBtns = document.querySelectorAll('.shape-choice-btn');
+  shapeChoiceBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      shapeChoiceBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentShape = btn.dataset.shape;
+
+      // Update download button text based on shape
+      const btnDownload = document.getElementById('btn-download-png');
+      if (btnDownload) {
+        btnDownload.innerHTML = currentShape === 'heart'
+          ? '<span>📥</span> TẢI MÃ QR TRÁI TIM VỀ MÁY (Ảnh Sắc Nét HD)'
+          : '<span>📥</span> TẢI MÃ QR VỀ MÁY (Ảnh Sắc Nét HD)';
+      }
+
+      updateQRPreview();
+      heartBurst(6);
     });
   });
 
