@@ -458,19 +458,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     rainEngine.burstWishes(5);
     rainEngine.burstPhotos(3);
 
-    // 4. Approximately 3 seconds later: Reveal the 3D letter & envelope
+    // 4. Approximately 3 seconds later: Reveal the small letter in the right corner!
     setTimeout(() => {
-      const envelopePresentation = document.getElementById('envelope-presentation');
-      if (envelopePresentation) {
-        envelopePresentation.classList.add('revealed');
+      const miniLetterAnchor = document.getElementById('mini-letter-anchor');
+      if (miniLetterAnchor) {
+        miniLetterAnchor.classList.add('visible');
         document.body.classList.add('stage-letter-ready');
-        petalEngine.burst(35);
+        petalEngine.burst(30);
         rainEngine.burstWishes(3);
-
-        // Smooth scroll on mobile to bring the envelope into clear focus
-        if (window.innerWidth <= 768) {
-          envelopePresentation.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        synth.playOpenChime();
       }
     }, 3000);
   }
@@ -489,13 +485,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     bouquetPrompt.addEventListener('touchend', (e) => { e.preventDefault(); triggerBloom(e); }, { passive: false });
   }
 
-  // 6. Envelope Open / Close Interaction
+  // 6. Letter Modal & Pop-up Interaction
+  const letterModal = document.getElementById('letter-modal');
+  const miniLetterBtn = document.getElementById('mini-letter-btn');
+  const closeLetterModalBtn = document.getElementById('close-letter-modal');
+  const btnCloseLetterBottom = document.getElementById('btn-close-letter-bottom');
   const envelope = document.getElementById('card-envelope');
   const waxSeal = document.getElementById('card-wax-seal');
+  const letterSheet = document.getElementById('letter-sheet');
   const btnTouchOpen = document.getElementById('btn-touch-open');
   const openHelper = document.getElementById('open-helper');
 
+  function openLetterModal() {
+    if (!letterModal) return;
+    letterModal.classList.add('active');
+    letterModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('letter-modal-open');
+    synth.init();
+    synth.playOpenChime();
+  }
+
+  function closeLetterModal() {
+    if (!letterModal || !letterModal.classList.contains('active')) return;
+    letterModal.classList.remove('active');
+    letterModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('letter-modal-open');
+
+    // After fade-out, fold letter back so it can be opened again with seal
+    setTimeout(() => {
+      if (envelope) {
+        envelope.classList.remove('open');
+      }
+      if (openHelper) {
+        openHelper.style.display = '';
+      }
+      if (letterSheet) {
+        const inner = letterSheet.querySelector('.letter-paper-inner');
+        if (inner) inner.scrollTop = 0;
+      }
+    }, 380);
+  }
+
   function openEnvelope() {
+    if (!envelope) return;
     if (!envelope.classList.contains('open')) {
       envelope.classList.add('open');
       if (openHelper) openHelper.style.display = 'none';
@@ -511,18 +543,105 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  if (envelope) {
-    envelope.addEventListener('click', openEnvelope);
-    envelope.addEventListener('touchend', (e) => { e.preventDefault(); openEnvelope(); }, { passive: false });
+  // Mini letter in right corner clicked
+  if (miniLetterBtn) {
+    miniLetterBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const rect = miniLetterBtn.getBoundingClientRect();
+      rainEngine.burstHeartAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      openLetterModal();
+    });
+    miniLetterBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const rect = miniLetterBtn.getBoundingClientRect();
+      rainEngine.burstHeartAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      openLetterModal();
+    }, { passive: false });
   }
-  if (waxSeal) {
-    waxSeal.addEventListener('click', (e) => { e.stopPropagation(); openEnvelope(); });
-    waxSeal.addEventListener('touchend', (e) => { e.stopPropagation(); e.preventDefault(); openEnvelope(); }, { passive: false });
-  }
+
+  // "Mở Lá Thư" in bottom dock clicked
   if (btnTouchOpen) {
-    btnTouchOpen.addEventListener('click', openEnvelope);
-    btnTouchOpen.addEventListener('touchend', (e) => { e.preventDefault(); openEnvelope(); }, { passive: false });
+    btnTouchOpen.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openLetterModal();
+      setTimeout(openEnvelope, 200);
+    });
+    btnTouchOpen.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openLetterModal();
+      setTimeout(openEnvelope, 200);
+    }, { passive: false });
   }
+
+  // Envelope clicks
+  if (envelope) {
+    envelope.addEventListener('click', (e) => {
+      // If envelope is not open yet, clicking it opens it
+      if (!envelope.classList.contains('open')) {
+        openEnvelope();
+      }
+    });
+  }
+
+  if (waxSeal) {
+    waxSeal.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openEnvelope();
+    });
+    waxSeal.addEventListener('touchend', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      openEnvelope();
+    }, { passive: false });
+  }
+
+  if (openHelper) {
+    openHelper.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openEnvelope();
+    });
+  }
+
+  // Close buttons
+  if (closeLetterModalBtn) {
+    closeLetterModalBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeLetterModal();
+    });
+  }
+
+  if (btnCloseLetterBottom) {
+    btnCloseLetterBottom.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeLetterModal();
+    });
+  }
+
+  // Clicking OUTSIDE the letter ("ấn ra ngoài") to close:
+  // When letter modal is active:
+  // If user clicks outside the envelope and letter sheet (i.e. on backdrop or modal padding), close the letter!
+  if (letterModal) {
+    letterModal.addEventListener('click', (e) => {
+      const isInsideEnvelope = envelope && envelope.contains(e.target);
+      const isInsideLetter = letterSheet && letterSheet.contains(e.target);
+      const isCloseBtn = e.target.closest('#close-letter-modal') || e.target.closest('#btn-close-letter-bottom');
+
+      if (isCloseBtn || (!isInsideEnvelope && !isInsideLetter)) {
+        closeLetterModal();
+      }
+    });
+  }
+
+  // ESC key closes letter modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (letterModal && letterModal.classList.contains('active')) {
+        closeLetterModal();
+      }
+    }
+  });
 
   // 6. Floating Music Disc Toggle
   const musicDiscBtn = document.getElementById('music-disc-btn');

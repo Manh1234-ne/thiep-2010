@@ -377,7 +377,7 @@ body.stage-initial .bouquet-showcase {
 
 /* When bloomed: bouquet shrinks down */
 body.stage-bloomed .bouquet-showcase {
-  transform: scale(0.7);
+  transform: scale(0.72);
   animation: none;
 }
 
@@ -390,9 +390,16 @@ body.stage-bloomed .bouquet-tap-prompt {
 
 @media (max-width: 768px) {
   body.stage-bloomed .bouquet-showcase {
-    transform: scale(0.65);
-    margin-bottom: -45px;
+    transform: scale(0.68);
+    margin-bottom: 0;
   }
+}
+
+/* When letter pop-up is active, bouquet softly dims and blurs */
+body.letter-modal-open .bouquet-showcase {
+  filter: blur(5px);
+  transform: scale(0.64);
+  transition: filter 0.4s ease, transform 0.4s ease;
 }
 
 .bouquet-halo {
@@ -451,38 +458,306 @@ body.stage-bloomed .bouquet-tap-prompt {
   -webkit-backdrop-filter: blur(4px);
 }
 
-/* 3D Envelope Presentation (Initially hidden, revealed after 3s) */
-.envelope-presentation {
-  flex: 0 0 380px;
-  max-width: 92vw;
-  display: none;
-  flex-direction: column;
-  align-items: center;
+/* ===================================================
+   FLOATING MINI LETTER BUTTON AT RIGHT CORNER
+   (Appears ~3s after flower shrinks)
+   =================================================== */
+.mini-letter-anchor {
+  position: fixed;
+  right: 20px;
+  bottom: 84px;
+  z-index: 70;
+  pointer-events: none;
   opacity: 0;
-  transform: translateY(40px) scale(0.9);
-  transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1), transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: scale(0.3) rotate(20deg);
+  transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.envelope-presentation.revealed {
-  display: flex;
+@media (min-width: 769px) {
+  .mini-letter-anchor {
+    right: 32px;
+    bottom: 35px;
+  }
+}
+
+.mini-letter-anchor.visible {
   opacity: 1;
-  transform: translateY(0) scale(1);
-  animation: letterSlideUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: auto;
+  transform: scale(1) rotate(0deg);
+  animation: miniLetterEntrance 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, miniFloatingIdle 3.2s ease-in-out infinite 0.75s;
 }
 
-@keyframes letterSlideUp {
+@keyframes miniLetterEntrance {
   0% {
     opacity: 0;
-    transform: translateY(50px) scale(0.85);
+    transform: scale(0.2) translateY(45px) rotate(25deg);
   }
-  60% {
+  65% {
     opacity: 1;
-    transform: translateY(-8px) scale(1.03);
+    transform: scale(1.12) translateY(-8px) rotate(-4deg);
   }
   100% {
     opacity: 1;
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes miniFloatingIdle {
+  0%, 100% {
     transform: translateY(0) scale(1);
   }
+  50% {
+    transform: translateY(-8px) scale(1.03);
+  }
+}
+
+.mini-floating-letter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #ffffff 0%, #fff1f2 60%, #ffe4e6 100%);
+  border: 2px solid #f43f5e;
+  border-radius: 40px;
+  padding: 8px 18px 8px 8px;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(190, 18, 60, 0.32), 0 0 18px rgba(255, 215, 0, 0.45);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mini-floating-letter:hover,
+.mini-floating-letter:active {
+  transform: scale(1.08) translateY(-2px);
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe4e6 100%);
+  box-shadow: 0 14px 34px rgba(225, 29, 72, 0.45), 0 0 25px rgba(255, 215, 0, 0.7);
+  border-color: #e11d48;
+}
+
+.mini-letter-glow {
+  position: absolute;
+  inset: -6px;
+  border-radius: 46px;
+  background: radial-gradient(circle, rgba(255, 42, 122, 0.35) 0%, rgba(255, 215, 0, 0) 70%);
+  z-index: -1;
+  animation: glowPulse 2.4s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+.mini-letter-icon-box {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e11d48, #be123c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(190, 18, 60, 0.35);
+  flex-shrink: 0;
+}
+
+.mini-env-emoji {
+  font-size: 1.55rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  animation: miniHeartBeat 2s infinite ease-in-out;
+}
+
+@keyframes miniHeartBeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.15); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.12); }
+  70% { transform: scale(1); }
+}
+
+.mini-unread-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffd700;
+  color: #881337;
+  font-size: 0.75rem;
+  font-weight: 900;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  animation: badgeBounce 1.8s infinite ease-in-out;
+}
+
+@keyframes badgeBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px) scale(1.1); }
+}
+
+.mini-letter-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 800;
+  color: #9f1239;
+  font-size: 0.95rem;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.mini-tag-sparkle {
+  color: #f59e0b;
+  font-size: 0.9rem;
+}
+
+/* ===================================================
+   LETTER POP-UP MODAL OVERLAY (Emerges over bouquet)
+   =================================================== */
+.letter-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(18, 6, 12, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.38s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.38s ease;
+  overflow-y: auto;
+  padding: 30px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.letter-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.letter-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.letter-modal-dialog {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: auto;
+  transform: scale(0.85) translateY(28px);
+  opacity: 0;
+  transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+}
+
+.letter-modal-overlay.active .letter-modal-dialog {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.letter-modal-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 10px;
+}
+
+.letter-modal-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffe4e6;
+  background: rgba(190, 18, 60, 0.55);
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(254, 205, 211, 0.3);
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.2px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.letter-modal-close-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px solid #fda4af;
+  color: #9f1239;
+  font-size: 1.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.letter-modal-close-btn:hover {
+  transform: scale(1.1) rotate(90deg);
+  background: #fff1f2;
+  color: #be123c;
+  border-color: #f43f5e;
+}
+
+.letter-modal-tap-outside-btn {
+  margin-top: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid #fecdd3;
+  color: #9f1239;
+  font-family: var(--font-sans);
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 8px 22px;
+  border-radius: 25px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.22);
+  transition: all 0.25s ease;
+}
+
+.letter-modal-tap-outside-btn:hover {
+  background: #ffffff;
+  color: #be123c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+/* 3D Envelope Presentation inside the modal */
+.envelope-presentation {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 1;
+  transform: none;
 }
 
 .envelope-container {

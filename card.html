@@ -63,7 +63,58 @@
         </div>
       </article>
 
-      <!-- 3D Letter & Envelope Interaction (Appears after 3s) -->
+    </section>
+
+    <!-- Interactive Experience Control Toolbar -->
+    <nav class="bottom-action-dock" aria-label="Interactive Controls">
+      <button type="button" class="dock-btn btn-rose" id="btn-touch-open">
+        <span>💌</span> Mở Lá Thư
+      </button>
+      <button type="button" class="dock-btn btn-gold" id="btn-burst-wishes">
+        <span>🌸</span> Mưa Lời Chúc
+      </button>
+      <button type="button" class="dock-btn btn-pink" id="btn-burst-photos">
+        <span>📸</span> Mưa Ảnh Kỷ Niệm
+      </button>
+      <button type="button" class="dock-btn btn-glass" id="btn-heart-burst">
+        <span>💖</span> Bắn Tim
+      </button>
+    </nav>
+
+  </main>
+
+  <!-- Floating Mini Letter at Right Corner (Appears ~3s after bouquet shrinks) -->
+  <aside class="mini-letter-anchor" id="mini-letter-anchor" aria-label="Lá thư chúc mừng 20/10">
+    <button type="button" class="mini-floating-letter" id="mini-letter-btn" title="Chạm để mở lá thư 💌" aria-label="Mở lá thư">
+      <div class="mini-letter-glow"></div>
+      <div class="mini-letter-icon-box">
+        <span class="mini-env-emoji">💌</span>
+        <span class="mini-unread-badge">1</span>
+      </div>
+      <div class="mini-letter-tag">
+        <span class="mini-tag-sparkle">✨</span>
+        <span class="mini-tag-text">Mở lá thư</span>
+      </div>
+    </button>
+  </aside>
+
+  <!-- Letter Pop-up Modal (Emerges over the bouquet when letter icon is clicked) -->
+  <div class="letter-modal-overlay" id="letter-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="letter-to-heading">
+    <div class="letter-modal-backdrop" id="letter-modal-backdrop"></div>
+    
+    <div class="letter-modal-dialog" id="letter-modal-dialog">
+      <!-- Top header with tip and close button -->
+      <div class="letter-modal-header">
+        <!-- <div class="letter-modal-hint">
+          <span class="hint-sparkle">✨</span>
+          <span>Chạm phong bao để mở • Nhấn ra ngoài để đóng</span>
+        </div> -->
+        <!-- <button type="button" class="letter-modal-close-btn" id="close-letter-modal" aria-label="Đóng thư" title="Đóng thư (hoặc nhấn ra ngoài)">
+          &times;
+        </button> -->
+      </div>
+
+      <!-- 3D Letter & Envelope Presentation -->
       <article class="envelope-presentation" id="envelope-presentation">
         <div class="envelope-container" id="card-envelope" title="Chạm vào phong bì để mở thư!">
           <!-- Wax Seal -->
@@ -100,31 +151,18 @@
           </div>
         </div>
 
-        <div class="open-instruction-box" id="open-helper">
+        <!-- <div class="open-instruction-box" id="open-helper">
           <span class="pulsing-hand">👆</span>
           <span>Chạm vào phong bao để mở lá thư & thưởng thức giai điệu 🎵</span>
-        </div>
+        </div> -->
       </article>
 
-    </section>
-
-    <!-- Interactive Experience Control Toolbar -->
-    <nav class="bottom-action-dock" aria-label="Interactive Controls">
-      <button type="button" class="dock-btn btn-rose" id="btn-touch-open">
-        <span>💌</span> Mở Lá Thư
-      </button>
-      <button type="button" class="dock-btn btn-gold" id="btn-burst-wishes">
-        <span>🌸</span> Mưa Lời Chúc
-      </button>
-      <button type="button" class="dock-btn btn-pink" id="btn-burst-photos">
-        <span>📸</span> Mưa Ảnh Kỷ Niệm
-      </button>
-      <button type="button" class="dock-btn btn-glass" id="btn-heart-burst">
-        <span>💖</span> Bắn Tim
-      </button>
-    </nav>
-
-  </main>
+      <!-- Bottom Close Pill inside modal -->
+      <!-- <button type="button" class="letter-modal-tap-outside-btn" id="btn-close-letter-bottom" title="Đóng lá thư và ngắm hoa">
+        <span>✕ Đóng lá thư</span>
+      </button> -->
+    </div>
+  </div>
 
   <!-- Photo Lightbox Modal (When user clicks on a falling photo) -->
   <div class="photo-modal-overlay" id="photo-modal" aria-hidden="true">

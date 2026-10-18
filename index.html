@@ -373,7 +373,16 @@ Chúc bạn luôn luôn xinh đẹp, rạng ngời, ngập tràn niềm vui và 
               </div>
             </div>
 
-            <div class="qr-canvas-holder" id="qr-preview-box">
+            <!-- Success Banner after generation -->
+            <div class="download-success-banner" id="download-success-banner" style="display:none;">
+              <span class="banner-icon">🎉</span>
+              <div class="banner-text">
+                <strong>Tạo mã QR thiệp 20/10 thành công!</strong>
+                <span>Mã QR đã sẵn sàng. Bạn có thể nhấn nút tải bên dưới để lưu ảnh về máy gửi người ấy nhé! 💖</span>
+              </div>
+            </div>
+
+            <div class="qr-canvas-holder" id="qr-preview-box" title="Mã QR chúc mừng 20/10">
               <!-- Rendered dynamic SVG goes here -->
             </div>
 
@@ -382,14 +391,8 @@ Chúc bạn luôn luôn xinh đẹp, rạng ngời, ngập tràn niềm vui và 
             </div>
 
             <div class="download-btn-group">
-              <button type="button" class="btn-lux btn-secondary btn-full" id="btn-download-png">
-                <span>📥</span> Tải Mã QR (PNG Siêu Nét 1200px)
-              </button>
-              <button type="button" class="btn-lux btn-secondary btn-full" id="btn-download-svg">
-                <span>📐</span> Tải Mã QR Vector (SVG)
-              </button>
-              <button type="button" class="btn-lux btn-secondary btn-full" id="btn-download-card">
-                <span>🖼️</span> Tải Tấm Thiệp Kèm Mã QR (In Ấn)
+              <button type="button" class="btn-lux btn-primary btn-full pulse-download-btn" id="btn-download-png">
+                <span>📥</span> TẢI MÃ QR VỀ MÁY (Ảnh Sắc Nét HD)
               </button>
               <button type="button" class="btn-lux btn-secondary btn-full" id="btn-preview-web-card">
                 <span>📱</span> Xem Thử Giao Diện Web Thiệp ↗

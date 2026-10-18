@@ -283,7 +283,7 @@ function renderQRCodeSVG(text, options = {}) {
 
   const qr = QRCodeBundle.create(text, { errorCorrectionLevel: 'H' });
   const size = qr.modules.size;
-  const margin = 4;
+  const margin = 1.8; // Tối ưu sát viền với mã QR đã tạo (quiet zone chuẩn gọn gàng)
   const totalSize = size + margin * 2;
   const viewBoxSize = 1000;
   const moduleSize = viewBoxSize / totalSize;
@@ -306,9 +306,8 @@ function renderQRCodeSVG(text, options = {}) {
     </filter>
   </defs>`;
 
-  // Card Background
-  elements.push(`<rect width="${viewBoxSize}" height="${viewBoxSize}" fill="#FFFFFF" rx="40"/>`);
-  elements.push(`<rect x="14" y="14" width="${viewBoxSize - 28}" height="${viewBoxSize - 28}" fill="none" stroke="#FFE4E8" stroke-width="2.5" rx="30"/>`);
+  // Card Background: Trắng tinh khôi, sát với mã QR, không viền rườm rà
+  elements.push(`<rect width="${viewBoxSize}" height="${viewBoxSize}" fill="#FFFFFF"/>`);
 
   // Draw Finders
   function drawFinderPattern(ox, oy) {
@@ -493,57 +492,105 @@ function updateQRPreview() {
 }
 
 /* ===================================================
-   DOWNLOAD EXPORTERS
+/* ===================================================
+   OPTIMIZED QR CODE PNG EXPORTER (Tải sát mã QR, Siêu Nét HD)
    =================================================== */
-function downloadSVG() {
-  const text = getActiveQRText();
-  const svgString = renderQRCodeSVG(text, {
-    palette: COLOR_PALETTES[currentPalette],
-    logo: currentLogo
-  });
-
-  const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `ma_qr_2010_${currentPalette}.svg`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
 function downloadPNG(size = 1200) {
+  const btn = document.getElementById('btn-download-png');
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.innerHTML = '<span>⏳</span> Đang chuẩn bị ảnh tải về...';
+    btn.disabled = true;
+  }
+
   const text = getActiveQRText();
+  // Renders closely fitted QR code (margin: 1.8 modules)
   const svgString = renderQRCodeSVG(text, {
     palette: COLOR_PALETTES[currentPalette],
-    logo: currentLogo
+    logo: currentLogo,
+    margin: 1.8
   });
+
+  const recipientInput = document.getElementById('qr-recipient-name');
+  const recipientName = recipientInput ? recipientInput.value.trim() : '';
+  // Convert Vietnamese accented letters to clean ascii filename
+  const cleanName = recipientName
+    ? recipientName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
+    : '';
+  const fileName = cleanName ? `ma_qr_2010_${cleanName}.png` : `ma_qr_2010_hong_do.png`;
+
+  function finishDownload(blobOrUrl) {
+    const downloadUrl = typeof blobOrUrl === 'string' ? blobOrUrl : URL.createObjectURL(blobOrUrl);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    if (typeof blobOrUrl !== 'string') {
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 10000);
+    }
+
+    if (btn) {
+      btn.innerHTML = '<span>✅</span> ĐÃ TẢI XONG ẢNH MÃ QR!';
+      btn.disabled = false;
+      setTimeout(() => {
+        btn.innerHTML = originalHtml || '<span>📥</span> TẢI MÃ QR VỀ MÁY (Ảnh Sắc Nét HD)';
+      }, 2500);
+    }
+
+    // Celebration burst around the button
+    heartBurst(8);
+  }
 
   const img = new Image();
-  const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-  const url = URL.createObjectURL(svgBlob);
+  const base64Svg = btoa(unescape(encodeURIComponent(svgString)));
+  img.src = 'data:image/svg+xml;base64,' + base64Svg;
 
   img.onload = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, size, size);
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, size, size);
 
-    canvas.toBlob(blob => {
-      const pngUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = pngUrl;
-      a.download = `ma_qr_2010_hong_do.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(pngUrl);
-      URL.revokeObjectURL(url);
-    });
+      canvas.toBlob(blob => {
+        if (blob) {
+          finishDownload(blob);
+        } else {
+          finishDownload(canvas.toDataURL('image/png'));
+        }
+      }, 'image/png');
+    } catch (e) {
+      console.warn('Canvas export failed, using direct SVG blob fallback:', e);
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      finishDownload(svgBlob);
+    }
   };
-  img.src = url;
+
+  img.onerror = () => {
+    // Fallback if data URI fails in this environment
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const blobUrl = URL.createObjectURL(svgBlob);
+    const fallbackImg = new Image();
+    fallbackImg.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(fallbackImg, 0, 0, size, size);
+      finishDownload(canvas.toDataURL('image/png'));
+      URL.revokeObjectURL(blobUrl);
+    };
+    fallbackImg.onerror = () => {
+      finishDownload(blobUrl);
+    };
+    fallbackImg.src = blobUrl;
+  };
 }
 
 function downloadCardPoster() {
@@ -1015,6 +1062,26 @@ document.addEventListener('DOMContentLoaded', () => {
       btnGenerateWebQR.innerHTML = '<span>✨</span> TẠO MÃ QR & LINK WEB THIỆP ✨';
     }, 2500);
 
+    // Show success banner & highlight the download button
+    const downloadSuccessBanner = document.getElementById('download-success-banner');
+    if (downloadSuccessBanner) {
+      downloadSuccessBanner.style.display = 'flex';
+    }
+
+    const btnDownload = document.getElementById('btn-download-png');
+    if (btnDownload) {
+      btnDownload.classList.add('pulse-download-highlight');
+      btnDownload.innerHTML = '<span>📥</span> TẢI MÃ QR VỀ MÁY NGAY (Ảnh HD) ✨';
+    }
+
+    // Auto-scroll smoothly to the QR code and download section
+    const qrPreviewBox = document.getElementById('qr-preview-box');
+    if (qrPreviewBox) {
+      setTimeout(() => {
+        qrPreviewBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 350);
+    }
+
     // Burst celebration
     petalEngine.burst(40);
     heartBurst(15);
@@ -1074,11 +1141,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnDownloadPng = document.getElementById('btn-download-png');
   if (btnDownloadPng) {
     btnDownloadPng.addEventListener('click', () => downloadPNG(1200));
-  }
-
-  const btnDownloadSvg = document.getElementById('btn-download-svg');
-  if (btnDownloadSvg) {
-    btnDownloadSvg.addEventListener('click', downloadSVG);
   }
 
   const btnDownloadCard = document.getElementById('btn-download-card');
