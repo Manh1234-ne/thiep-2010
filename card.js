@@ -471,18 +471,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 3000);
   }
 
-  // Attach tap events to both the bouquet and the "Nhấn vào hoa" prompt
+  // Attach tap events to bouquet, prompt, and card wrapper
   const bouquetImgBox = document.getElementById('bouquet-img-box');
   const bouquetPrompt = document.getElementById('bouquet-tap-prompt');
   const bouquetCard = document.getElementById('bouquet-card');
 
+  let bloomTapped = false;
+  function onBloomTrigger(e) {
+    if (e.type === 'touchend') {
+      bloomTapped = true;
+      triggerBloom(e);
+      setTimeout(() => { bloomTapped = false; }, 400);
+      return;
+    }
+    if (e.type === 'click') {
+      if (bloomTapped) return;
+      triggerBloom(e);
+    }
+  }
+
   if (bouquetImgBox) {
-    bouquetImgBox.addEventListener('click', triggerBloom);
-    bouquetImgBox.addEventListener('touchend', (e) => { e.preventDefault(); triggerBloom(e); }, { passive: false });
+    bouquetImgBox.addEventListener('click', onBloomTrigger);
+    bouquetImgBox.addEventListener('touchend', onBloomTrigger);
   }
   if (bouquetPrompt) {
-    bouquetPrompt.addEventListener('click', triggerBloom);
-    bouquetPrompt.addEventListener('touchend', (e) => { e.preventDefault(); triggerBloom(e); }, { passive: false });
+    bouquetPrompt.addEventListener('click', onBloomTrigger);
+    bouquetPrompt.addEventListener('touchend', onBloomTrigger);
+  }
+  if (bouquetCard) {
+    bouquetCard.addEventListener('click', onBloomTrigger);
   }
 
   // 6. Letter Modal & Pop-up Interaction
@@ -622,16 +639,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Clicking OUTSIDE the letter ("ấn ra ngoài") to close:
   // When letter modal is active:
   // If user clicks outside the envelope and letter sheet (i.e. on backdrop or modal padding), close the letter!
-  if (letterModal) {
-    letterModal.addEventListener('click', (e) => {
-      const isInsideEnvelope = envelope && envelope.contains(e.target);
-      const isInsideLetter = letterSheet && letterSheet.contains(e.target);
-      const isCloseBtn = e.target.closest('#close-letter-modal') || e.target.closest('#btn-close-letter-bottom');
+  const letterModalBackdrop = document.getElementById('letter-modal-backdrop');
 
-      if (isCloseBtn || (!isInsideEnvelope && !isInsideLetter)) {
-        closeLetterModal();
-      }
+  function handleOutsideClick(e) {
+    const isInsideEnvelope = envelope && envelope.contains(e.target);
+    const isInsideLetter = letterSheet && letterSheet.contains(e.target);
+    const isCloseBtn = e.target.closest('#close-letter-modal') || e.target.closest('#btn-close-letter-bottom');
+
+    if (isCloseBtn || (!isInsideEnvelope && !isInsideLetter)) {
+      closeLetterModal();
+    }
+  }
+
+  if (letterModal) {
+    letterModal.addEventListener('click', handleOutsideClick);
+  }
+
+  if (letterModalBackdrop) {
+    letterModalBackdrop.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeLetterModal();
     });
+    letterModalBackdrop.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeLetterModal();
+    }, { passive: false });
   }
 
   // ESC key closes letter modal

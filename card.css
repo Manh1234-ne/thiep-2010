@@ -650,12 +650,15 @@ body.letter-modal-open .bouquet-showcase {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+  cursor: pointer;
 }
 
 .letter-modal-backdrop {
   position: absolute;
   inset: 0;
   z-index: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .letter-modal-dialog {
