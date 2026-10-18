@@ -270,19 +270,18 @@ function isInCenterLogo(r, c, size, logoRadiusInModules) {
   return dist <= logoRadiusInModules;
 }
 
-function getRomanticHeartPath(cx, cy, w, h) {
-  const cuspY = cy - h * 0.32;
-  const lobeTopY = cy - h * 0.50;
-  const bottomTipY = cy + h * 0.49;
-  
+function getHeartClipPath(cx, cy, w, h) {
+  const topCuspY = cy - h * 0.28;
+  const topLobeY = cy - h * 0.48;
+  const bottomTipY = cy + h * 0.48;
   const leftX = cx - w * 0.5;
   const rightX = cx + w * 0.5;
-  
+
   return `M ${cx} ${bottomTipY}
-    C ${cx - w * 0.20} ${cy + h * 0.36}, ${leftX} ${cy + h * 0.16}, ${leftX} ${cy - h * 0.10}
-    C ${leftX} ${lobeTopY}, ${cx - w * 0.08} ${lobeTopY}, ${cx} ${cuspY}
-    C ${cx + w * 0.08} ${lobeTopY}, ${rightX} ${lobeTopY}, ${rightX} ${cy - h * 0.10}
-    C ${rightX} ${cy + h * 0.16}, ${cx + w * 0.20} ${cy + h * 0.36}, ${cx} ${bottomTipY} Z`;
+    C ${cx - w * 0.22} ${cy + h * 0.30}, ${leftX} ${cy + h * 0.12}, ${leftX} ${cy - h * 0.12}
+    C ${leftX} ${topLobeY}, ${cx - w * 0.08} ${topLobeY}, ${cx} ${topCuspY}
+    C ${cx + w * 0.08} ${topLobeY}, ${rightX} ${topLobeY}, ${rightX} ${cy - h * 0.12}
+    C ${rightX} ${cy + h * 0.12}, ${cx + w * 0.22} ${cy + h * 0.30}, ${cx} ${bottomTipY} Z`;
 }
 
 function renderQRCodeSVG(text, options = {}) {
@@ -302,14 +301,17 @@ function renderQRCodeSVG(text, options = {}) {
   const size = qr.modules.size;
 
   if (shape === 'heart') {
-    // Render Romantic Heart-Shaped QR Code (Verified 100% Scanable on Zalo / Phone Camera / jsQR)
-    const viewBoxSize = 1200;
-    const qrBoxSize = 620;
-    const qrTopLeftX = 600 - qrBoxSize / 2;
-    const qrTopLeftY = 555 - qrBoxSize / 2;
-    const qrMargin = 1.4;
-    const totalModules = size + qrMargin * 2;
-    const moduleSize = qrBoxSize / totalModules;
+    // Pure Heart-Shaped QR Code (Mã QR hình trái tim thực thụ)
+    // Toàn bộ các chấm dữ liệu được tạo hình ôm trọn đường cong Trái Tim mềm mại
+    const viewBoxSize = 1000;
+    const margin = 2.0;
+    const total = size + margin * 2;
+    const m = viewBoxSize / total;
+
+    const hScale = 1.30;
+    const hw = viewBoxSize * hScale;
+    const hh = viewBoxSize * hScale;
+    const heartPath = getHeartClipPath(viewBoxSize / 2, viewBoxSize / 2 + 10, hw, hh);
 
     let elements = [];
 
@@ -320,100 +322,67 @@ function renderQRCodeSVG(text, options = {}) {
         <stop offset="50%" stop-color="${palette.mid}" />
         <stop offset="100%" stop-color="${palette.end}" />
       </linearGradient>
-      <linearGradient id="heartGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#FDE047" />
-        <stop offset="50%" stop-color="#F59E0B" />
-        <stop offset="100%" stop-color="#D97706" />
+      <linearGradient id="heartFinderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="${palette.start}" />
+        <stop offset="100%" stop-color="${palette.end}" />
       </linearGradient>
-      <filter id="heartLuxShadow" x="-15%" y="-15%" width="130%" height="130%">
-        <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="${palette.end}" flood-opacity="0.28" />
+      <filter id="heartShadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="${palette.end}" flood-opacity="0.25"/>
       </filter>
-      <filter id="ribbonShadow" x="-10%" y="-20%" width="120%" height="140%">
-        <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="${palette.end}" flood-opacity="0.35"/>
-      </filter>
+      <clipPath id="pureHeartClip">
+        <path d="${heartPath}"/>
+      </clipPath>
     </defs>`;
 
-    // Background container
+    // Nền trắng tinh khôi sát với mã QR, không viền rườm rà
     elements.push(`<rect width="${viewBoxSize}" height="${viewBoxSize}" fill="#FFFFFF"/>`);
 
-    // Romantic Heart Card Outer Silhouette
-    const heartPathOuter = getRomanticHeartPath(600, 570, 1180, 1130);
-    const heartPathGold = getRomanticHeartPath(600, 570, 1154, 1104);
-    const heartPathWhite = getRomanticHeartPath(600, 570, 1124, 1074);
+    // 1. Dữ liệu các chấm được cắt/tạo hình theo dáng Trái Tim (Heart Contour)
+    let dataModules = [];
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if ((r <= 7 && c <= 7) || (r <= 7 && c >= size - 8) || (r >= size - 8 && c <= 7)) continue;
+        if (Math.hypot(r - (size - 1) / 2, c - (size - 1) / 2) <= 3.8) continue;
+        if (qr.modules.get(r, c)) {
+          const x = (c + margin) * m;
+          const y = (r + margin) * m;
+          dataModules.push(`<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${(m * 0.95).toFixed(2)}" height="${(m * 0.95).toFixed(2)}" rx="${(m * 0.35).toFixed(2)}" fill="url(#heartGrad)"/>`);
+        }
+      }
+    }
 
-    elements.push(`
-      <g filter="url(#heartLuxShadow)">
-        <path d="${heartPathOuter}" fill="url(#heartGrad)"/>
-        <path d="${heartPathGold}" fill="url(#heartGoldGrad)"/>
-        <path d="${heartPathWhite}" fill="#FFFFFF"/>
-      </g>
-    `);
+    elements.push(`<g clip-path="url(#pureHeartClip)">${dataModules.join('')}</g>`);
 
-    // Delicate inner dashed heart outline
-    const heartPathInnerLine = getRomanticHeartPath(600, 570, 1090, 1040);
-    elements.push(`
-      <path d="${heartPathInnerLine}" fill="none" stroke="#FFE4E8" stroke-width="2.5" stroke-dasharray="8 6"/>
-    `);
-
-    // Decorative Sparkles and Little Hearts in Upper Lobes
-    elements.push(`
-      <g fill="url(#heartGoldGrad)">
-        <path d="M 230 150 Q 230 170 210 170 Q 230 170 230 190 Q 230 170 250 170 Q 230 170 230 150 Z" transform="scale(0.85) translate(40, -10)" />
-        <path d="M 970 150 Q 970 170 950 170 Q 970 170 970 190 Q 970 170 990 170 Q 970 170 970 150 Z" transform="scale(0.85) translate(160, -10)" />
-        <circle cx="600" cy="145" r="4.5" fill="#F59E0B" />
-        <circle cx="580" cy="152" r="3" fill="#FDA4AF" />
-        <circle cx="620" cy="152" r="3" fill="#FDA4AF" />
-      </g>
-      <g fill="#FDA4AF" opacity="0.65">
-        <path d="M 270 200 C 269 190 255 190 255 202 C 255 211 268 219 270 222 C 272 219 285 211 285 202 C 285 190 271 190 270 200 Z" transform="scale(1.2) translate(-30, -30)"/>
-        <path d="M 930 200 C 929 190 915 190 915 202 C 915 211 928 219 930 222 C 932 219 945 211 945 202 C 945 190 931 190 930 200 Z" transform="scale(1.2) translate(-90, -30)"/>
-      </g>
-    `);
-
-    // Draw Finder Patterns
+    // 2. Ba mắt định vị (Finder patterns) được giữ nguyên chuẩn 100% để quét nhạy trên mọi dòng máy
     function drawFinderPattern(ox, oy) {
-      const x = qrTopLeftX + (ox + qrMargin) * moduleSize;
-      const y = qrTopLeftY + (oy + qrMargin) * moduleSize;
-      const w = 7 * moduleSize;
-
-      elements.push(`<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${w.toFixed(2)}" rx="${(moduleSize * 1.6).toFixed(2)}" fill="url(#heartGrad)"/>`);
-      const hollowW = 5 * moduleSize;
-      const hollowOffset = 1 * moduleSize;
-      elements.push(`<rect x="${(x + hollowOffset).toFixed(2)}" y="${(y + hollowOffset).toFixed(2)}" width="${hollowW.toFixed(2)}" height="${hollowW.toFixed(2)}" rx="${(moduleSize * 1.1).toFixed(2)}" fill="#FFFFFF"/>`);
-      const coreW = 3 * moduleSize;
-      const coreOffset = 2 * moduleSize;
-      elements.push(`<rect x="${(x + coreOffset).toFixed(2)}" y="${(y + coreOffset).toFixed(2)}" width="${coreW.toFixed(2)}" height="${coreW.toFixed(2)}" rx="${(moduleSize * 0.8).toFixed(2)}" fill="url(#heartGrad)"/>`);
+      const x = (ox + margin) * m;
+      const y = (oy + margin) * m;
+      const w = 7 * m;
+      elements.push(`<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${w.toFixed(2)}" rx="${(m * 1.6).toFixed(2)}" fill="url(#heartFinderGrad)"/>`);
+      const hollowW = 5 * m;
+      const hollowOffset = 1 * m;
+      elements.push(`<rect x="${(x + hollowOffset).toFixed(2)}" y="${(y + hollowOffset).toFixed(2)}" width="${hollowW.toFixed(2)}" height="${hollowW.toFixed(2)}" rx="${(m * 1.1).toFixed(2)}" fill="#FFFFFF"/>`);
+      const coreW = 3 * m;
+      const coreOffset = 2 * m;
+      elements.push(`<rect x="${(x + coreOffset).toFixed(2)}" y="${(y + coreOffset).toFixed(2)}" width="${coreW.toFixed(2)}" height="${coreW.toFixed(2)}" rx="${(m * 0.8).toFixed(2)}" fill="url(#heartFinderGrad)"/>`);
     }
 
     drawFinderPattern(0, 0);
     drawFinderPattern(size - 7, 0);
     drawFinderPattern(0, size - 7);
 
-    // Draw Data Modules with soft pebble curves
-    const roundRadius = moduleSize * 0.30;
-    const centerRadiusModules = 3.6;
-    const qrCenter = (size - 1) / 2;
+    // 3. Đường cong viền nét đứt nhẹ nhàng tôn dáng Trái Tim cho mã QR
+    elements.push(`
+      <path d="${heartPath}" fill="none" stroke="url(#heartFinderGrad)" stroke-width="2.5" stroke-dasharray="10 7" opacity="0.45"/>
+    `);
 
-    for (let r = 0; r < size; r++) {
-      for (let c = 0; c < size; c++) {
-        if (isFinderPattern(r, c, size)) continue;
-        if (Math.hypot(r - qrCenter, c - qrCenter) <= centerRadiusModules) continue;
-
-        if (qr.modules.get(r, c)) {
-          const x = qrTopLeftX + (c + qrMargin) * moduleSize;
-          const y = qrTopLeftY + (r + qrMargin) * moduleSize;
-          elements.push(`<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${(moduleSize * 0.95).toFixed(2)}" height="${(moduleSize * 0.95).toFixed(2)}" rx="${roundRadius.toFixed(2)}" fill="url(#heartGrad)"/>`);
-        }
-      }
-    }
-
-    // Center Emblem Badge
-    const centerX = qrTopLeftX + qrBoxSize / 2;
-    const centerY = qrTopLeftY + qrBoxSize / 2;
-    const badgeRadius = 3.9 * moduleSize;
+    // 4. Biểu tượng trung tâm (Emblem Badge)
+    const centerX = viewBoxSize / 2;
+    const centerY = viewBoxSize / 2;
+    const badgeRadius = 3.9 * m;
 
     elements.push(`
-      <g>
+      <g filter="url(#heartShadow)">
         <circle cx="${centerX.toFixed(2)}" cy="${centerY.toFixed(2)}" r="${badgeRadius.toFixed(2)}" fill="#FFFFFF" stroke="#FDA4AF" stroke-width="3"/>
         <circle cx="${centerX.toFixed(2)}" cy="${centerY.toFixed(2)}" r="${(badgeRadius - 3.5).toFixed(2)}" fill="#FFF1F2"/>
       </g>
@@ -449,17 +418,6 @@ function renderQRCodeSVG(text, options = {}) {
         </g>
       `);
     }
-
-    // Bottom Heart Tip Ribbon Banner
-    elements.push(`
-      <g transform="translate(600, 960)">
-        <rect x="-190" y="-22" width="380" height="44" rx="22" fill="url(#heartGrad)" filter="url(#ribbonShadow)"/>
-        <rect x="-186" y="-18" width="372" height="36" rx="18" fill="none" stroke="#FDE047" stroke-width="1.8"/>
-        <text x="0" y="3" font-family="'Segoe UI', Roboto, 'Be Vietnam Pro', sans-serif" font-size="18" font-weight="800" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central" letter-spacing="1">
-          💖 QUÉT MÃ NHẬN LỜI CHÚC 💖
-        </text>
-      </g>
-    `);
 
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${viewBoxSize} ${viewBoxSize}" width="${viewBoxSize}" height="${viewBoxSize}">
       ${defs}
@@ -694,7 +652,7 @@ function downloadPNG(size = 1200) {
     palette: COLOR_PALETTES[currentPalette],
     logo: currentLogo,
     shape: currentShape,
-    margin: currentShape === 'heart' ? 1.4 : 1.8
+    margin: currentShape === 'heart' ? 2.0 : 1.8
   });
 
   const recipientInput = document.getElementById('qr-recipient-name');
