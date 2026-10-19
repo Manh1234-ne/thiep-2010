@@ -300,13 +300,13 @@ function renderQRCodeSVG(text, options = {}) {
 
   let qr;
   try {
-    qr = QRCodeBundle.create(text, { errorCorrectionLevel: 'H' });
+    qr = QRCodeBundle.create(text, { errorCorrectionLevel: 'L' });
   } catch (e1) {
     try {
       qr = QRCodeBundle.create(text, { errorCorrectionLevel: 'M' });
     } catch (e2) {
       try {
-        qr = QRCodeBundle.create(text, { errorCorrectionLevel: 'L' });
+        qr = QRCodeBundle.create(text, { errorCorrectionLevel: 'H' });
       } catch (e3) {
         console.error('QR code generation failed:', e3);
         return '';
@@ -314,6 +314,24 @@ function renderQRCodeSVG(text, options = {}) {
     }
   }
   const size = qr.modules.size;
+
+  if (options.decorative !== true) {
+    const margin = 4;
+    const totalSize = size + margin * 2;
+    const modules = [];
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        if (qr.modules.get(r, c)) {
+          modules.push(`M${c + margin} ${r + margin}h1v1h-1z`);
+        }
+      }
+    }
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 ${totalSize} ${totalSize}" role="img" aria-label="Mã QR tiêu chuẩn">
+      <rect width="${totalSize}" height="${totalSize}" fill="#FFFFFF"/>
+      <path d="${modules.join('')}" fill="${palette.end || '#111827'}" shape-rendering="crispEdges"/>
+    </svg>`;
+  }
 
   if (shape === 'heart') {
     // Pure Heart-Shaped QR Code (Mã QR hình trái tim thực thụ)
@@ -623,28 +641,18 @@ function updateQRPreview() {
   if (charCounter) charCounter.textContent = `${text.length} ký tự`;
 
   if (densityIndicator) {
-    if (selectedMode === 'web') {
-      densityIndicator.textContent = 'Mã Web Link (quét mở trang thiệp trực tuyến)';
-      densityIndicator.className = 'density-ok';
-    } else if (text.length > 350) {
-      densityIndicator.textContent = 'Mã rất dày (vẫn quét tốt, nên thu gọn để đẹp hơn)';
-      densityIndicator.className = 'density-warn';
-    } else {
-      densityIndicator.textContent = 'Độ nét tối ưu (quét cực nhanh)';
-      densityIndicator.className = 'density-ok';
-    }
+    densityIndicator.textContent = 'Mã QR vuông tiêu chuẩn, tương phản cao để điện thoại dễ quét';
+    densityIndicator.className = 'density-ok';
   }
 
   if (subInstruction) {
     subInstruction.innerHTML = selectedMode === 'web'
-      ? `<span>💖</span> Quét mã ${currentShape === 'heart' ? 'trái tim' : ''} bằng Camera hoặc Zalo để mở Web Thiệp 20/10 <span>✨</span>`
-      : `<span>💖</span> Quét mã ${currentShape === 'heart' ? 'trái tim' : ''} bằng Camera hoặc Zalo để đọc trực tiếp lời chúc <span>✨</span>`;
+      ? `<span>💖</span> Quét mã bằng Camera hoặc Zalo để mở Web Thiệp 20/10 <span>✨</span>`
+      : `<span>💖</span> Quét mã bằng Camera hoặc Zalo để đọc trực tiếp lời chúc <span>✨</span>`;
   }
 
   const svgString = renderQRCodeSVG(text, {
-    palette: COLOR_PALETTES[currentPalette],
-    logo: currentLogo,
-    shape: currentShape
+    palette: COLOR_PALETTES[currentPalette]
   });
 
   previewContainer.innerHTML = svgString;
@@ -666,10 +674,7 @@ function downloadPNG(size = 1200) {
   let svgString = '';
   try {
     svgString = renderQRCodeSVG(text, {
-      palette: COLOR_PALETTES[currentPalette],
-      logo: currentLogo,
-      shape: currentShape,
-      margin: currentShape === 'heart' ? 2.0 : 1.8
+      palette: COLOR_PALETTES[currentPalette]
     });
   } catch (err) {
     console.error('Error generating QR SVG:', err);
@@ -690,8 +695,7 @@ function downloadPNG(size = 1200) {
   const cleanName = recipientName
     ? recipientName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
     : '';
-  const prefix = currentShape === 'heart' ? 'ma_qr_trai_tim_2010' : 'ma_qr_2010';
-  const fileName = cleanName ? `${prefix}_${cleanName}.png` : `${prefix}_hong_do.png`;
+  const fileName = cleanName ? `ma_qr_2010_${cleanName}.png` : 'ma_qr_2010.png';
 
   function finishDownload(blobOrUrl) {
     try {
@@ -711,9 +715,7 @@ function downloadPNG(size = 1200) {
         btn.innerHTML = '<span>✅</span> ĐÃ TẢI XONG ẢNH MÃ QR!';
         btn.disabled = false;
         setTimeout(() => {
-          btn.innerHTML = originalHtml || (currentShape === 'heart'
-            ? '<span>📥</span> TẢI MÃ QR TRÁI TIM VỀ MÁY (Ảnh Sắc Nét HD)'
-            : '<span>📥</span> TẢI MÃ QR VỀ MÁY (Ảnh Sắc Nét HD)');
+          btn.innerHTML = originalHtml || '<span>📥</span> TẢI MÃ QR CHUẨN VỀ MÁY (Ảnh Sắc Nét HD)';
         }, 2500);
       }
 
@@ -738,8 +740,7 @@ function downloadPNG(size = 1200) {
       canvas.width = size;
       canvas.height = size;
       const ctx = canvas.getContext('2d');
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
+      ctx.imageSmoothingEnabled = false;
       ctx.drawImage(img, 0, 0, size, size);
       URL.revokeObjectURL(blobUrl);
 
@@ -773,6 +774,7 @@ function downloadPNG(size = 1200) {
           canvas.width = size;
           canvas.height = size;
           const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = false;
           ctx.drawImage(fallbackImg, 0, 0, size, size);
           finishDownload(canvas.toDataURL('image/png'));
         } catch (err) {
@@ -1357,9 +1359,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnDownload = document.getElementById('btn-download-png');
     if (btnDownload) {
       btnDownload.classList.add('pulse-download-highlight');
-      btnDownload.innerHTML = currentShape === 'heart'
-        ? '<span>📥</span> TẢI MÃ QR TRÁI TIM VỀ MÁY (Ảnh HD) ✨'
-        : '<span>📥</span> TẢI MÃ QR VỀ MÁY NGAY (Ảnh HD) ✨';
+      btnDownload.innerHTML = '<span>📥</span> TẢI MÃ QR CHUẨN VỀ MÁY (Ảnh HD) ✨';
     }
 
     // Auto-scroll smoothly to the QR code and download section
@@ -1410,38 +1410,6 @@ document.addEventListener('DOMContentLoaded', () => {
       card.classList.add('active');
       currentPalette = card.dataset.palette;
       updateQRPreview();
-    });
-  });
-
-  // Center Logo Selector
-  const iconChoiceBtns = document.querySelectorAll('.icon-choice-btn');
-  iconChoiceBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      iconChoiceBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentLogo = btn.dataset.logo;
-      updateQRPreview();
-    });
-  });
-
-  // Shape Selector (Heart vs Square)
-  const shapeChoiceBtns = document.querySelectorAll('.shape-choice-btn');
-  shapeChoiceBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      shapeChoiceBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentShape = btn.dataset.shape;
-
-      // Update download button text based on shape
-      const btnDownload = document.getElementById('btn-download-png');
-      if (btnDownload) {
-        btnDownload.innerHTML = currentShape === 'heart'
-          ? '<span>📥</span> TẢI MÃ QR TRÁI TIM VỀ MÁY (Ảnh Sắc Nét HD)'
-          : '<span>📥</span> TẢI MÃ QR VỀ MÁY (Ảnh Sắc Nét HD)';
-      }
-
-      updateQRPreview();
-      heartBurst(6);
     });
   });
 
