@@ -80,6 +80,7 @@ let activeWishes = [
 let activePhotos = [
   'assets/sample_portrait.jpg'
 ];
+let pendingImageReads = [];
 let generatedWebUrl = '';
 
 let audioCtx = null;
@@ -297,7 +298,21 @@ function renderQRCodeSVG(text, options = {}) {
     return '';
   }
 
-  const qr = QRCodeBundle.create(text, { errorCorrectionLevel: 'H' });
+  let qr;
+  try {
+    qr = QRCodeBundle.create(text, { errorCorrectionLevel: 'H' });
+  } catch (e1) {
+    try {
+      qr = QRCodeBundle.create(text, { errorCorrectionLevel: 'M' });
+    } catch (e2) {
+      try {
+        qr = QRCodeBundle.create(text, { errorCorrectionLevel: 'L' });
+      } catch (e3) {
+        console.error('QR code generation failed:', e3);
+        return '';
+      }
+    }
+  }
   const size = qr.modules.size;
 
   if (shape === 'heart') {
@@ -549,7 +564,7 @@ function updateMobileConnectUI() {
   const mobileUrlDisplay = document.getElementById('mobile-url-display');
   const mobileModalUrlText = document.getElementById('mobile-modal-url-text');
   const mobileEntryQR = document.getElementById('mobile-entry-qr');
-  
+
   // Prefer permanent 24/7 cloud URL so phones can access anytime even when PC is off
   const targetUrl = CLOUD_PERMANENT_ORIGIN || serverInfo.tunnelUrl || serverInfo.lanUrl || window.location.origin;
 
@@ -580,7 +595,7 @@ async function fetchServerInfo() {
       updateQRPreview();
       updateMobileConnectUI();
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 fetchServerInfo();
 setInterval(fetchServerInfo, 8000);
@@ -648,12 +663,26 @@ function downloadPNG(size = 1200) {
   }
 
   const text = getActiveQRText();
-  const svgString = renderQRCodeSVG(text, {
-    palette: COLOR_PALETTES[currentPalette],
-    logo: currentLogo,
-    shape: currentShape,
-    margin: currentShape === 'heart' ? 2.0 : 1.8
-  });
+  let svgString = '';
+  try {
+    svgString = renderQRCodeSVG(text, {
+      palette: COLOR_PALETTES[currentPalette],
+      logo: currentLogo,
+      shape: currentShape,
+      margin: currentShape === 'heart' ? 2.0 : 1.8
+    });
+  } catch (err) {
+    console.error('Error generating QR SVG:', err);
+  }
+
+  if (!svgString) {
+    if (btn) {
+      btn.innerHTML = '<span>⚠️</span> Không thể tạo mã tải về!';
+      btn.disabled = false;
+      setTimeout(() => { btn.innerHTML = originalHtml; }, 2500);
+    }
+    return;
+  }
 
   const recipientInput = document.getElementById('qr-recipient-name');
   const recipientName = recipientInput ? recipientInput.value.trim() : '';
@@ -665,35 +694,43 @@ function downloadPNG(size = 1200) {
   const fileName = cleanName ? `${prefix}_${cleanName}.png` : `${prefix}_hong_do.png`;
 
   function finishDownload(blobOrUrl) {
-    const downloadUrl = typeof blobOrUrl === 'string' ? blobOrUrl : URL.createObjectURL(blobOrUrl);
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    try {
+      const downloadUrl = typeof blobOrUrl === 'string' ? blobOrUrl : URL.createObjectURL(blobOrUrl);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
 
-    if (typeof blobOrUrl !== 'string') {
-      setTimeout(() => URL.revokeObjectURL(downloadUrl), 10000);
+      if (typeof blobOrUrl !== 'string') {
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 15000);
+      }
+
+      if (btn) {
+        btn.innerHTML = '<span>✅</span> ĐÃ TẢI XONG ẢNH MÃ QR!';
+        btn.disabled = false;
+        setTimeout(() => {
+          btn.innerHTML = originalHtml || (currentShape === 'heart'
+            ? '<span>📥</span> TẢI MÃ QR TRÁI TIM VỀ MÁY (Ảnh Sắc Nét HD)'
+            : '<span>📥</span> TẢI MÃ QR VỀ MÁY (Ảnh Sắc Nét HD)');
+        }, 2500);
+      }
+
+      // Celebration burst around the button
+      heartBurst(8);
+    } catch (e) {
+      console.error('Download execution error:', e);
+      if (btn) {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+      }
     }
-
-    if (btn) {
-      btn.innerHTML = '<span>✅</span> ĐÃ TẢI XONG ẢNH MÃ QR!';
-      btn.disabled = false;
-      setTimeout(() => {
-        btn.innerHTML = originalHtml || (currentShape === 'heart'
-          ? '<span>📥</span> TẢI MÃ QR TRÁI TIM VỀ MÁY (Ảnh Sắc Nét HD)'
-          : '<span>📥</span> TẢI MÃ QR VỀ MÁY (Ảnh Sắc Nét HD)');
-      }, 2500);
-    }
-
-    // Celebration burst around the button
-    heartBurst(8);
   }
 
+  const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+  const blobUrl = URL.createObjectURL(svgBlob);
   const img = new Image();
-  const base64Svg = btoa(unescape(encodeURIComponent(svgString)));
-  img.src = 'data:image/svg+xml;base64,' + base64Svg;
 
   img.onload = () => {
     try {
@@ -704,40 +741,54 @@ function downloadPNG(size = 1200) {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, size, size);
+      URL.revokeObjectURL(blobUrl);
 
-      canvas.toBlob(blob => {
-        if (blob) {
-          finishDownload(blob);
-        } else {
-          finishDownload(canvas.toDataURL('image/png'));
-        }
-      }, 'image/png');
+      if (canvas.toBlob) {
+        canvas.toBlob(blob => {
+          if (blob) {
+            finishDownload(blob);
+          } else {
+            finishDownload(canvas.toDataURL('image/png'));
+          }
+        }, 'image/png');
+      } else {
+        finishDownload(canvas.toDataURL('image/png'));
+      }
     } catch (e) {
       console.warn('Canvas export failed, using direct SVG blob fallback:', e);
-      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-      finishDownload(svgBlob);
+      URL.revokeObjectURL(blobUrl);
+      const directSvgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      finishDownload(directSvgBlob);
     }
   };
 
   img.onerror = () => {
-    // Fallback if data URI fails in this environment
-    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-    const blobUrl = URL.createObjectURL(svgBlob);
-    const fallbackImg = new Image();
-    fallbackImg.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(fallbackImg, 0, 0, size, size);
-      finishDownload(canvas.toDataURL('image/png'));
-      URL.revokeObjectURL(blobUrl);
-    };
-    fallbackImg.onerror = () => {
-      finishDownload(blobUrl);
-    };
-    fallbackImg.src = blobUrl;
+    URL.revokeObjectURL(blobUrl);
+    try {
+      const base64Svg = btoa(unescape(encodeURIComponent(svgString)));
+      const fallbackImg = new Image();
+      fallbackImg.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(fallbackImg, 0, 0, size, size);
+          finishDownload(canvas.toDataURL('image/png'));
+        } catch (err) {
+          finishDownload(svgBlob);
+        }
+      };
+      fallbackImg.onerror = () => {
+        finishDownload(svgBlob);
+      };
+      fallbackImg.src = 'data:image/svg+xml;base64,' + base64Svg;
+    } catch (err) {
+      finishDownload(svgBlob);
+    }
   };
+
+  img.src = blobUrl;
 }
 
 function downloadCardPoster() {
@@ -826,6 +877,21 @@ function renderPhotoThumbnails() {
       renderPhotoThumbnails();
     });
   });
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => resolve(ev.target.result);
+    reader.onerror = () => reject(reader.error || new Error('Không đọc được file ảnh'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function waitForPendingImageReads() {
+  if (!pendingImageReads.length) return;
+  await Promise.allSettled(pendingImageReads);
+  pendingImageReads = [];
 }
 
 /* ===================================================
@@ -1013,17 +1079,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const customBouquetInput = document.getElementById('input-custom-bouquet');
   const customBouquetName = document.getElementById('custom-bouquet-name');
   if (customBouquetInput) {
-    customBouquetInput.addEventListener('change', (e) => {
+    customBouquetInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          selectedBouquet = ev.target.result;
-          bouquetCards.forEach(c => c.classList.remove('active'));
-          if (customBouquetName) customBouquetName.textContent = `✓ Đã chọn: ${file.name}`;
-        };
-        reader.readAsDataURL(file);
-      }
+      if (!file) return;
+
+      const readerPromise = readFileAsDataUrl(file).then((dataUrl) => {
+        selectedBouquet = dataUrl;
+        bouquetCards.forEach(c => c.classList.remove('active'));
+        if (customBouquetName) customBouquetName.textContent = `✓ Đã chọn: ${file.name}`;
+        return dataUrl;
+      });
+
+      pendingImageReads.push(readerPromise);
+      await readerPromise;
     });
   }
 
@@ -1113,18 +1181,51 @@ document.addEventListener('DOMContentLoaded', () => {
      =================================================== */
   renderPhotoThumbnails();
 
+  async function uploadClientImage(dataUrl) {
+    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image')) return dataUrl;
+    try {
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const formData = new FormData();
+      formData.append('file', blob, 'photo.jpg');
+      const uploadRes = await fetch('https://tmpfiles.org/api/v1/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (uploadRes.ok) {
+        const json = await uploadRes.json();
+        if (json && json.status === 'success' && json.data && json.data.url) {
+          const uploadedUrl = new URL(json.data.url);
+          if (uploadedUrl.protocol === 'https:' && uploadedUrl.hostname === 'tmpfiles.org') {
+            if (!uploadedUrl.pathname.startsWith('/dl/')) {
+              uploadedUrl.pathname = `/dl${uploadedUrl.pathname}`;
+            }
+            return uploadedUrl.href;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Client upload to tmpfiles failed:', err);
+    }
+    return null;
+  }
+
   const inputRainPhotos = document.getElementById('input-rain-photos');
   if (inputRainPhotos) {
-    inputRainPhotos.addEventListener('change', (e) => {
+    inputRainPhotos.addEventListener('change', async (e) => {
       const files = Array.from(e.target.files);
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          activePhotos.push(ev.target.result);
-          renderPhotoThumbnails();
-        };
-        reader.readAsDataURL(file);
-      });
+      if (!files.length) return;
+      // If currently only the default sample photo is in the list, replace it with the new uploads
+      if (activePhotos.length === 1 && activePhotos[0] === 'assets/sample_portrait.jpg') {
+        activePhotos = [];
+      }
+
+      const readPromises = files.map(file => readFileAsDataUrl(file));
+      pendingImageReads.push(...readPromises);
+
+      const results = await Promise.all(readPromises);
+      activePhotos.push(...results);
+      renderPhotoThumbnails();
     });
   }
 
@@ -1152,6 +1253,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function generateWebCard() {
     btnGenerateWebQR.innerHTML = '<span>⏳</span> Đang tạo thiệp & mã QR...';
+    await waitForPendingImageReads();
 
     const cardPayload = {
       recipient: recipientInput.value.trim() || 'Người phụ nữ tuyệt vời 💖',
@@ -1160,46 +1262,120 @@ document.addEventListener('DOMContentLoaded', () => {
       sender: 'Happy 20/10 with all my love ❤️',
       bouquet: selectedBouquet,
       music: selectedMusic,
-      wishes: activeWishes,
-      photos: activePhotos
+      wishes: [...activeWishes],
+      photos: [...activePhotos]
     };
 
-    // Save to localStorage for instant local preview
+    // Save full data to localStorage immediately for instant local preview
     localStorage.setItem('preview_card_2010', JSON.stringify(cardPayload));
 
-    // Generate permanent 24/7 cloud URL (guaranteed to work forever even when PC is shut down!)
-    const lightPayload = { ...cardPayload, photos: ['assets/sample_portrait.jpg'] };
-    const hashStr = btoa(unescape(encodeURIComponent(JSON.stringify(lightPayload))));
-    const permanentCloudUrl = `${CLOUD_PERMANENT_ORIGIN}/card.html#data=${hashStr}`;
+    let savedCard = null;
 
-    // Also attempt saving to local server for archiving if server is running
+    // Save a local copy when the app is running with its Node server.
     try {
-      await fetch('/api/save-card', {
+      const res = await fetch('/api/save-card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cardPayload)
       });
-    } catch (e) {}
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && data.card) {
+          savedCard = data.card;
+        }
+      }
+    } catch (e) {
+      console.warn('API save-card failed:', e);
+    }
 
-    // QR code always encodes the permanent 24/7 cloud URL
-    finalCardUrl = permanentCloudUrl;
+    // Use only portable data in the public card: local /uploads paths stop working
+    // when this computer is off, so keep the originals for client-side cloud upload.
+    const cloudPayload = { ...cardPayload, ...(savedCard || {}) };
+    if (Array.isArray(cardPayload.photos)) {
+      cloudPayload.photos = cardPayload.photos.map((photo, index) => {
+        const savedPhoto = savedCard && Array.isArray(savedCard.photos) ? savedCard.photos[index] : null;
+        return typeof savedPhoto === 'string' && !savedPhoto.startsWith('/uploads/') && !savedPhoto.startsWith('data:')
+          ? savedPhoto
+          : photo;
+      });
+    }
+
+    if (savedCard && typeof savedCard.bouquet === 'string'
+      && !savedCard.bouquet.startsWith('/uploads/') && !savedCard.bouquet.startsWith('data:')) {
+      cloudPayload.bouquet = savedCard.bouquet;
+    }
+
+    // Upload custom images so they fit in a static link and remain available offline.
+    if (Array.isArray(cloudPayload.photos)) {
+      cloudPayload.photos = await Promise.all(cloudPayload.photos.map(async (photo) => {
+        if (typeof photo === 'string' && photo.startsWith('data:image')) {
+          return await uploadClientImage(photo);
+        }
+        return photo;
+      }));
+    }
+
+    if (typeof cloudPayload.bouquet === 'string' && cloudPayload.bouquet.startsWith('data:image')) {
+      cloudPayload.bouquet = await uploadClientImage(cloudPayload.bouquet);
+    }
+
+    const photosNotUploaded = cloudPayload.photos.some(photo =>
+      photo === null || (typeof photo === 'string' && photo.startsWith('data:image'))
+    );
+    const bouquetNotUploaded = cloudPayload.bouquet === null
+      || (typeof cloudPayload.bouquet === 'string' && cloudPayload.bouquet.startsWith('data:image'));
+    if (photosNotUploaded || bouquetNotUploaded) {
+      generatedWebUrl = '';
+      if (webLinkBox) webLinkBox.style.display = 'none';
+      if (generatedWebUrlInput) generatedWebUrlInput.value = '';
+      btnGenerateWebQR.innerHTML = '<span>✨</span> TẠO MÃ QR & LINK WEB THIỆP ✨';
+      window.alert('Không tải được ảnh lên kho ảnh online nên chưa thể tạo link thiệp. Ảnh bạn đã chọn vẫn được giữ lại; vui lòng thử lại khi kết nối ổn định.');
+      return;
+    }
+
+    // Filter any leftover invalid values to avoid oversized QR codes.
+    const safePhotos = cloudPayload.photos.filter(p => typeof p === 'string' && !p.startsWith('data:'));
+    if (!safePhotos.length) {
+      safePhotos.push('assets/sample_portrait.jpg');
+    }
+    cloudPayload.photos = safePhotos;
+
+    if (typeof cloudPayload.bouquet === 'string' && cloudPayload.bouquet.startsWith('data:')) {
+      cloudPayload.bouquet = 'assets/bouquet_red_roses.jpg';
+    }
+
+    const hashStr = btoa(unescape(encodeURIComponent(JSON.stringify(cloudPayload))));
+    const finalCardUrl = `${CLOUD_PERMANENT_ORIGIN}/card.html#data=${hashStr}`;
+
     generatedWebUrl = finalCardUrl;
 
     // Show generated link box
     if (webLinkBox && generatedWebUrlInput) {
       webLinkBox.style.display = 'block';
-      generatedWebUrlInput.value = permanentCloudUrl;
+      generatedWebUrlInput.value = finalCardUrl;
       if (btnOpenWebUrl) {
-        btnOpenWebUrl.href = permanentCloudUrl;
+        btnOpenWebUrl.href = finalCardUrl;
       }
     }
 
     const tunnelBadge = document.getElementById('tunnel-badge');
     if (tunnelBadge) {
-      tunnelBadge.textContent = '🟢 Vĩnh Viễn 24/7 (Quét được kể cả khi tắt máy)';
-      tunnelBadge.style.background = '#ecfdf5';
-      tunnelBadge.style.color = '#059669';
-      tunnelBadge.style.border = '1px solid #10b981';
+      if (finalCardUrl.includes('trycloudflare.com')) {
+        tunnelBadge.textContent = '🌐 Link Online Toàn Cầu (Cloudflare 4G/Wi-Fi)';
+        tunnelBadge.style.background = '#ecfdf5';
+        tunnelBadge.style.color = '#059669';
+        tunnelBadge.style.border = '1px solid #10b981';
+      } else if (finalCardUrl.includes('github.io')) {
+        tunnelBadge.textContent = '🟢 Vĩnh Viễn 24/7 (Đám Mây Tự Động)';
+        tunnelBadge.style.background = '#ecfdf5';
+        tunnelBadge.style.color = '#059669';
+        tunnelBadge.style.border = '1px solid #10b981';
+      } else {
+        tunnelBadge.textContent = '🏠 Mạng Nội Bộ (Wi-Fi) / Máy Của Bạn';
+        tunnelBadge.style.background = '#eff6ff';
+        tunnelBadge.style.color = '#1d4ed8';
+        tunnelBadge.style.border = '1px solid #93c5fd';
+      }
     }
 
     updateQRPreview();
@@ -1253,8 +1429,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnPreviewWebCard) {
     btnPreviewWebCard.addEventListener('click', () => {
-      const cardId = generatedWebUrl ? (new URL(generatedWebUrl).searchParams.get('id')) : null;
-      const url = cardId ? `card.html?id=${cardId}` : 'card.html?preview=1';
+      const url = generatedWebUrl || 'card.html?preview=1';
       window.open(url, '_blank');
     });
   }
