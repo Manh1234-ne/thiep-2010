@@ -287,8 +287,9 @@ class RainEngine {
     const el = document.createElement('div');
     el.className = 'falling-photo-item';
     const img = document.createElement('img');
-    img.src = url;
     img.alt = 'Ảnh kỷ niệm';
+    img.addEventListener('error', () => el.remove(), { once: true });
+    img.src = url;
     el.appendChild(img);
 
     const startX = 30 + Math.random() * (window.innerWidth - 120);
@@ -341,6 +342,7 @@ function openPhotoModal(imgSrc) {
   const modal = document.getElementById('photo-modal');
   const modalImg = document.getElementById('modal-photo-img');
   if (modal && modalImg) {
+    modalImg.onerror = closePhotoModal;
     modalImg.src = imgSrc;
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');

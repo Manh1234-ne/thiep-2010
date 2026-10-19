@@ -1181,35 +1181,6 @@ document.addEventListener('DOMContentLoaded', () => {
      =================================================== */
   renderPhotoThumbnails();
 
-  async function uploadClientImage(dataUrl) {
-    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image')) return dataUrl;
-    try {
-      const res = await fetch(dataUrl);
-      const blob = await res.blob();
-      const formData = new FormData();
-      formData.append('file', blob, 'photo.jpg');
-      const uploadRes = await fetch('https://tmpfiles.org/api/v1/upload', {
-        method: 'POST',
-        body: formData
-      });
-      if (uploadRes.ok) {
-        const json = await uploadRes.json();
-        if (json && json.status === 'success' && json.data && json.data.url) {
-          const uploadedUrl = new URL(json.data.url);
-          if (uploadedUrl.protocol === 'https:' && uploadedUrl.hostname === 'tmpfiles.org') {
-            if (!uploadedUrl.pathname.startsWith('/dl/')) {
-              uploadedUrl.pathname = `/dl${uploadedUrl.pathname}`;
-            }
-            return uploadedUrl.href;
-          }
-        }
-      }
-    } catch (err) {
-      console.warn('Client upload to tmpfiles failed:', err);
-    }
-    return null;
-  }
-
   const inputRainPhotos = document.getElementById('input-rain-photos');
   if (inputRainPhotos) {
     inputRainPhotos.addEventListener('change', async (e) => {
@@ -1288,48 +1259,40 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('API save-card failed:', e);
     }
 
-    // Use only portable data in the public card: local /uploads paths stop working
-    // when this computer is off, so keep the originals for client-side cloud upload.
+    // Use only permanent external image URLs in the public card. Local paths and
+    // temporary links stop working after this computer is off or the host expires them.
     const cloudPayload = { ...cardPayload, ...(savedCard || {}) };
+    const isTemporaryImageUrl = value =>
+      typeof value === 'string' && /^https?:\/\/(?:www\.)?tmpfiles\.org\//i.test(value);
+
     if (Array.isArray(cardPayload.photos)) {
       cloudPayload.photos = cardPayload.photos.map((photo, index) => {
         const savedPhoto = savedCard && Array.isArray(savedCard.photos) ? savedCard.photos[index] : null;
-        return typeof savedPhoto === 'string' && !savedPhoto.startsWith('/uploads/') && !savedPhoto.startsWith('data:')
+        return typeof savedPhoto === 'string' && !savedPhoto.startsWith('/uploads/')
+          && !savedPhoto.startsWith('data:') && !isTemporaryImageUrl(savedPhoto)
           ? savedPhoto
           : photo;
       });
     }
 
-    if (savedCard && typeof savedCard.bouquet === 'string'
-      && !savedCard.bouquet.startsWith('/uploads/') && !savedCard.bouquet.startsWith('data:')) {
-      cloudPayload.bouquet = savedCard.bouquet;
-    }
-
-    // Upload custom images so they fit in a static link and remain available offline.
-    if (Array.isArray(cloudPayload.photos)) {
-      cloudPayload.photos = await Promise.all(cloudPayload.photos.map(async (photo) => {
-        if (typeof photo === 'string' && photo.startsWith('data:image')) {
-          return await uploadClientImage(photo);
-        }
-        return photo;
-      }));
-    }
-
-    if (typeof cloudPayload.bouquet === 'string' && cloudPayload.bouquet.startsWith('data:image')) {
-      cloudPayload.bouquet = await uploadClientImage(cloudPayload.bouquet);
+    if (savedCard && typeof savedCard.bouquet === 'string') {
+      cloudPayload.bouquet = savedCard.bouquet.startsWith('/uploads/')
+        || savedCard.bouquet.startsWith('data:') || isTemporaryImageUrl(savedCard.bouquet)
+        ? cardPayload.bouquet
+        : savedCard.bouquet;
     }
 
     const photosNotUploaded = cloudPayload.photos.some(photo =>
-      photo === null || (typeof photo === 'string' && photo.startsWith('data:image'))
+      typeof photo === 'string' && (photo.startsWith('data:image') || photo.startsWith('/uploads/'))
     );
-    const bouquetNotUploaded = cloudPayload.bouquet === null
-      || (typeof cloudPayload.bouquet === 'string' && cloudPayload.bouquet.startsWith('data:image'));
+    const bouquetNotUploaded = typeof cloudPayload.bouquet === 'string'
+      && (cloudPayload.bouquet.startsWith('data:image') || cloudPayload.bouquet.startsWith('/uploads/'));
     if (photosNotUploaded || bouquetNotUploaded) {
       generatedWebUrl = '';
       if (webLinkBox) webLinkBox.style.display = 'none';
       if (generatedWebUrlInput) generatedWebUrlInput.value = '';
       btnGenerateWebQR.innerHTML = '<span>✨</span> TẠO MÃ QR & LINK WEB THIỆP ✨';
-      window.alert('Không tải được ảnh lên kho ảnh online nên chưa thể tạo link thiệp. Ảnh bạn đã chọn vẫn được giữ lại; vui lòng thử lại khi kết nối ổn định.');
+      window.alert('Ảnh chưa được lưu ở kho ảnh lâu dài. Hãy mở ứng dụng trên máy tính bằng Node server (npm start), tạo lại link khi máy đang bật, rồi có thể tắt máy. Link tạo từ GitHub Pages không thể lưu ảnh tùy chỉnh lâu dài.');
       return;
     }
 
